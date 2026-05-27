@@ -1,0 +1,59 @@
+# Boardroom AI · CI pipeline
+# Per SOP §4.4 and §7. Every push and every PR runs:
+#   1. pnpm install --frozen-lockfile
+#   2. pnpm typecheck   (tsc --noEmit clean — no "any" to paper over real errors)
+#   3. pnpm lint        (eslint, configured in eslint.config.mjs)
+#   4. pnpm test        (vitest — see /tests)
+#   5. pnpm build       (Next.js production build)
+#
+# Merge to main is BLOCKED on green CI. Cloudflare Pages auto-deploys main.
+# AI autonomy Level 2 (SOP §11.3) means a human must approve every merge.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Stub env vars for the build only.
+          # Real values live in Cloudflare Pages → Settings → Environment Variables.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-stub-anon-key
+          NEXT_PUBLIC_APP_URL: http://localhost:3000

@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ─── THEME ─────────────────────────────────────────────────────────────────
+   Dark command-centre palette (matches Dashboard.jsx)
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg:     #0E1726;   /* page background */
+  --panel:  #15203A;   /* card / panel background */
+  --panel2: #1C2A47;   /* nested stat block */
+  --soft:   #1C2A47;   /* alias for panel2 */
+
+  /* Borders */
+  --line:   #2A3B5E;
+
+  /* Text */
+  --ink:    #E8EDF6;   /* primary text (light on dark) */
+  --muted:  #8597B8;   /* secondary / dim text */
+
+  /* Brand accents */
+  --accent: #D4A017;   /* gold — primary CTA */
+  --gold:   #D4A017;
+  --copper: #C97B3A;
+  --primary:#2E7DD1;   /* blue */
+
+  /* Status */
+  --success:#3FB984;
+  --red:    #E5544B;
+  --amber:  #E5A93C;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* ─── BUTTONS ───────────────────────────────────────────────────────────────*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Gold primary — dark text on gold */
+.btn-primary,
+.btn {
+  background: var(--accent);
+  color: #0E1726;
+}
+.btn-primary:hover,
+.btn:hover:not(.btn-ghost):not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+/* Ghost — outlined */
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Danger — red, for destructive / irreversible actions only */
+.btn-danger,
+.btn-accent {
+  background: var(--red);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled),
+.btn-accent:hover:not(:disabled) { filter: brightness(1.1); }
+
+/* ─── INPUTS ────────────────────────────────────────────────────────────────*/
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input::placeholder { color: var(--muted); opacity: 0.8; }
+.input:focus { border-color: var(--gold); }
+textarea.input { min-height: 80px; resize: vertical; font-family: inherit; }
+
+select.input option {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+/* ─── CARDS ─────────────────────────────────────────────────────────────────*/
+.card {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  padding: 20px;
+}
+
+/* ─── CHIPS ─────────────────────────────────────────────────────────────────*/
+.chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+.chip.selected { background: var(--gold); color: #0E1726; border-color: var(--gold); }
+
+/* ─── LOGO MARK ─────────────────────────────────────────────────────────────*/
+.logo-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--gold);
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.logo-mark::before,
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  background: #0E1726;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+}
+.logo-mark::before { left: 5px; top: 5px; }
+.logo-mark::after  { right: 5px; bottom: 5px; background: #fff; }
+
+/* ─── SCROLLBARS ─────────────────────────────────────────────────────────────*/
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────────*/
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes pulse-gold {
+  0%,100% { box-shadow: 0 0 0 0 rgba(212,160,23,0); }
+  50%      { box-shadow: 0 0 0 4px rgba(212,160,23,0.25); }
+}
