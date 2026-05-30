@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { AgentRole } from "@/lib/prompts";
 import {
   copyToClipboard,
@@ -76,6 +77,7 @@ function AssistantContent({
   return (
     <div className="markdown-body">
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           p: ({ children }) => (
             <p style={{ margin: "0 0 0.6em 0", lineHeight: 1.6 }}>{children}</p>
@@ -181,32 +183,51 @@ function AssistantContent({
             />
           ),
           table: ({ children }) => (
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                margin: "0.5em 0",
-                fontSize: "0.88em",
-              }}
-            >
-              {children}
-            </table>
+            <div style={{ overflowX: "auto", margin: "0.75em 0", borderRadius: 10, border: "1px solid #2A3B5E" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.87em", minWidth: 300 }}>
+                {children}
+              </table>
+            </div>
           ),
+          thead: ({ children }) => (
+            <thead style={{ background: "#15203A" }}>{children}</thead>
+          ),
+          tbody: ({ children }) => (
+            <tbody>{children}</tbody>
+          ),
+          tr: ({ children, ...props }) => {
+            // Alternate row shading — check if parent is tbody via heuristic
+            const isHeader = (props as { node?: { tagName?: string }; "data-sourcepos"?: string })["data-sourcepos"]?.startsWith("1:");
+            return (
+              <tr style={{ background: isHeader ? "#15203A" : undefined }}>{children}</tr>
+            );
+          },
           th: ({ children }) => (
             <th
               style={{
                 border: "1px solid #2A3B5E",
-                padding: "6px 10px",
-                background: "#15203A",
+                padding: "9px 14px",
+                background: "#1C2A47",
                 fontWeight: 700,
                 textAlign: "left",
+                color: "#C5A572",
+                fontSize: "0.9em",
+                letterSpacing: "0.02em",
+                whiteSpace: "nowrap",
               }}
             >
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td style={{ border: "1px solid #2A3B5E", padding: "6px 10px" }}>
+            <td
+              style={{
+                border: "1px solid #2A3B5E",
+                padding: "8px 14px",
+                lineHeight: 1.5,
+                verticalAlign: "top",
+              }}
+            >
               {children}
             </td>
           ),
