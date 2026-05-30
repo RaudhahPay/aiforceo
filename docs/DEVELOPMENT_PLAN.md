@@ -682,14 +682,36 @@ Every feature below lists the primary source files responsible for it. When you 
 
 ---
 
-### 3.3 Custom Agent Builder
+### 3.3 Custom Agent Builder ✅
 
 **Core function:** Users can create custom AI agents beyond the default 6.
 
-- [ ] `/agents/new` — agent builder UI (name, avatar, focus area, custom system prompt)
-- [ ] Migration: `custom_agents` table (`workspace_id`, `name`, `system_prompt`, `avatar_color`)
-- [ ] Custom agents appear in Sidebar alongside default 6
-- [ ] Custom agents follow same credit/streaming/persistence pattern
+- [x] `/agents/new` — agent builder UI with gradient picker + 3 built-in templates
+- [x] `/agents/[id]/edit` — edit existing custom agents
+- [x] Migration 0009: `custom_agents` table (workspace_id, name, title, description, system_prompt, gradients)
+- [x] Custom agents appear in Sidebar under new "Agents" link
+- [x] Custom agents follow same credit/streaming/persistence pattern
+- [x] Agent chat route handles UUID roles → loads custom_agents.system_prompt at runtime
+- [x] conversations.agent_role CHECK constraint relaxed to allow UUIDs
+
+---
+
+### 3.3b Conversation Search ✅
+
+- [x] Migration 0009: `content_tsv` generated column + GIN FTS index on messages
+- [x] `searchConversations()` server action using Postgres websearch FTS
+- [x] `/search/page.tsx` — full-text search across all conversations
+- [x] Linked from Sidebar
+
+---
+
+### 3.3c Saved Outputs ✅
+
+- [x] Migration 0009: `starred` boolean column on messages
+- [x] `toggleStarMessage()` server action
+- [x] ⭐ star button on every assistant response in ChatClient
+- [x] `/saved/page.tsx` — browse all starred messages
+- [x] `getStarredMessages()` server action
 
 ---
 
@@ -709,20 +731,24 @@ Every feature below lists the primary source files responsible for it. When you 
 
 ---
 
-### 3.6 Localization
+### 3.6 Localization ✅ (scaffold)
 
-- [ ] `next-intl` or `react-i18next` setup
-- [ ] Malay (Bahasa Malaysia) — priority language for MY market
+- [x] `next-intl` installed (v4.13.0)
+- [x] `src/i18n/locales/en.json` — full English translation keys
+- [x] `src/i18n/locales/ms.json` — full Bahasa Malaysia translation keys
+- [x] `src/i18n/request.ts` — cookie-based locale detection
+- [x] `src/server/actions/locale.ts` — setLocale() action
+- [x] Settings → Language tab with EN / MS switcher
+- [ ] Wire translation keys into components (additive — infrastructure is ready)
 - [ ] Arabic — Middle East expansion
-- [ ] Language selector in Settings
 
 ---
 
-### 3.7 Done-For-You (DFY) Tier
+### 3.7 Done-For-You (DFY) Tier ✅ (pricing page)
 
-- [ ] Separate pricing tier (high-touch, managed service)
-- [ ] Dedicated Boardroom AI team sets up the workspace
-- [ ] Weekly async "board meeting" outputs delivered by email
+- [x] DFY card on pricing page with email CTA → `hello@aiforceo.app`
+- [ ] Full CRM workflow for DFY clients
+- [ ] Separate pricing tier in Stripe
 - [ ] Custom SLA and support channel
 
 ---
