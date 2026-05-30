@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   "/api/invite/accept",
   // Health check — for uptime monitoring
   "/api/health",
+  // Cron routes — protected by CRON_SECRET, not session
+  "/api/cron/morning-brief",
   // Auth callback + payment webhook
   "/api/auth/callback",
   "/api/stripe/webhook",
