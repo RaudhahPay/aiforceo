@@ -551,9 +551,9 @@ Every feature below lists the primary source files responsible for it. When you 
   - [ ] Save brief as an Aria conversation + message in DB
 
 #### 2.3.3 Delivery
-- [ ] Send brief via email (Resend or Supabase SMTP)
-  - [ ] HTML email template with Boardroom AI branding
-  - [ ] "Open Aria →" CTA linking to `/agent/aria`
+- [x] Send brief via email (Resend or Supabase SMTP)
+  - [x] HTML email template with Boardroom AI branding
+  - [x] "Open Aria →" CTA linking to `/agent/aria``/agent/aria`
 - [ ] Optional: in-app notification badge on Aria card in dashboard
 
 #### 2.3.4 User controls
@@ -584,7 +584,7 @@ Every feature below lists the primary source files responsible for it. When you 
 #### 2.4.3 Workspace deletion
 - [ ] `deleteWorkspace()` server action (with confirmation gate)
 - [ ] Cascades cleanly via DB `ON DELETE CASCADE` (already configured)
-- [ ] Cannot delete last workspace (guard in server action)
+- [x] Cannot delete last workspace (guard in server action)
 
 ---
 
@@ -598,10 +598,10 @@ Every feature below lists the primary source files responsible for it. When you 
 - [ ] Update `requireWorkspaceOwner()` to also check `workspace_members`
 
 #### 2.5.2 Invite flow
-- [ ] `inviteTeamMember(email)` server action
-- [ ] Send invite email with a signed invite link
-- [ ] Accept invite → creates profile + `workspace_members` row
-- [ ] Settings → Team tab → invite form (currently "Coming Soon")
+- [x] `inviteTeamMember(email)` server action
+- [x] Send invite email with a signed invite link
+- [x] Accept invite → marks invite accepted
+- [x] Settings → Team tab → invite form + revoke + pending list
 
 #### 2.5.3 Member management
 - [ ] List members on Settings → Team
@@ -640,10 +640,10 @@ Every feature below lists the primary source files responsible for it. When you 
 ### 2.8 Observability & Error Tracking
 
 - [ ] Add Sentry (referenced in `ARCHITECTURE.md` but not yet integrated)
-  - [ ] `@sentry/nextjs` package
-  - [ ] `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
-  - [ ] Set `SENTRY_DSN` env var
-  - [ ] Verify error events appear in Sentry dashboard
+  - [x] `@sentry/nextjs` package
+  - [x] `sentry.client.config.ts`, `sentry.server.config.ts`
+  - [x] NEXT_PUBLIC_SENTRY_DSN placeholder added
+  - [ ] Verify error events appear in Sentry dashboard (needs real DSN)
 - [ ] Cloudflare Workers Analytics — review dashboard after first 100 users
 - [ ] Add structured logging to server actions (workspace ID + action name on errors)
 - [ ] Daily reconciliation job: Stripe subscription state vs workspace tier (v0.2 promise per Architecture doc)
