@@ -27,6 +27,7 @@ export default async function SettingsPage() {
     { data: ledger },
     { data: convRows },
     { data: memories },
+    { data: invites },
   ] = await Promise.all([
     getRemainingTokens(workspace.id),
     admin
@@ -72,6 +73,12 @@ export default async function SettingsPage() {
       .order("importance", { ascending: false })
       .order("last_reinforced_at", { ascending: false })
       .limit(150),
+    admin
+      .from("workspace_invites")
+      .select("id, email, role, accepted_at, created_at, expires_at")
+      .eq("workspace_id", workspace.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const quota = TIER_MONTHLY_TOKENS[workspace.tier] ?? 100_000;
@@ -102,7 +109,7 @@ export default async function SettingsPage() {
 
   return (
     <div
-      className="grid min-h-screen"
+      className="grid min-h-screen app-grid"
       style={{ gridTemplateColumns: "240px 1fr" }}
     >
       <Sidebar
@@ -131,6 +138,7 @@ export default async function SettingsPage() {
           briefTimezone={wsDetails?.brief_timezone ?? "Asia/Kuala_Lumpur"}
           briefHour={wsDetails?.brief_hour ?? 9}
           memories={memories ?? []}
+          invites={(invites ?? []) as { id: string; email: string; role: string; accepted_at: string | null; created_at: string; expires_at: string }[]}
           ledger={(ledger ?? []).map((r) => ({
             deltaTokens: r.delta_tokens,
             reason: r.reason,

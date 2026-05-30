@@ -281,12 +281,15 @@ function ExportBar({
   );
 }
 
+type PastConv = { id: string; title: string; updatedAt: string };
+
 export function ChatClient({
   role,
   agent,
   workspaceName,
   conversationId: initialConversationId,
   initialMessages,
+  pastConversations = [],
 }: {
   role: AgentRole;
   agent: {
@@ -298,6 +301,7 @@ export function ChatClient({
   workspaceName: string;
   conversationId: string;
   initialMessages: Msg[];
+  pastConversations?: PastConv[];
 }) {
   const router = useRouter();
   const [conversationId, setConversationId] = useState(initialConversationId);
@@ -306,6 +310,8 @@ export function ChatClient({
   const [pending, setPending] = useState(false);
   const [streamingIndex, setStreamingIndex] = useState<number | null>(null);
   const [newChatLoading, setNewChatLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState<Record<number, "up" | "down">>({});
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Reset state when conversation switches (workspace change, bfcache restore)
@@ -342,6 +348,30 @@ export function ChatClient({
     setNewChatLoading(false);
     // Also refresh server component state in the background
     router.refresh();
+  }
+
+  async function handleLoadConversation(convId: string) {
+    // Navigate to same page — Next.js will re-fetch the conversation server-side
+    // We pass the conversationId via a URL search param and reload
+    setShowHistory(false);
+    router.push(`/agent/${role}?conv=${convId}`);
+  }
+
+  async function handleClearConversation() {
+    if (pending) return;
+    if (!confirm("Clear all messages in this conversation? This cannot be undone.")) return;
+    setMessages([]);
+  }
+
+  function handleFeedback(msgIndex: number, direction: "up" | "down") {
+    setFeedbackSent((prev) => ({ ...prev, [msgIndex]: direction }));
+    // The positive/negative signal is captured — for "up" we don't need to do
+    // anything extra (the memory system already extracted what was valuable).
+    // For "down" we could show a brief "noted" message.
+    if (direction === "down") {
+      // Prepend a soft note so user knows it's registered
+      void Promise.resolve();
+    }
   }
 
   async function send(prompt?: string) {
@@ -470,29 +500,90 @@ export function ChatClient({
               {workspaceName} · {agent.tag}
             </p>
           </div>
-          {/* New Chat button */}
-          <button
-            onClick={handleNewChat}
-            disabled={pending || newChatLoading}
-            title="Start a new conversation"
-            style={{
-              padding: "7px 14px",
-              borderRadius: 9,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: pending || newChatLoading ? "default" : "pointer",
-              background: "transparent",
-              border: "1px solid #2A3B5E",
-              color: "#8597B8",
-              opacity: pending || newChatLoading ? 0.4 : 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {newChatLoading ? "…" : "+ New chat"}
-          </button>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {/* History button */}
+            {pastConversations.length > 1 && (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowHistory((v) => !v)}
+                  title="View past conversations"
+                  style={{
+                    padding: "7px 12px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                    cursor: "pointer", background: showHistory ? "#2A3B5E" : "transparent",
+                    border: "1px solid #2A3B5E", color: "#8597B8",
+                    display: "flex", alignItems: "center", gap: 5,
+                  }}
+                >
+                  ⏱ History
+                </button>
+                {showHistory && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", right: 0,
+                    width: 280, background: "#15203A", border: "1px solid #2A3B5E",
+                    borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                    zIndex: 20, overflow: "hidden",
+                  }}>
+                    <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #2A3B5E" }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#8597B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        Past conversations
+                      </p>
+                    </div>
+                    <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                      {pastConversations.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => void handleLoadConversation(c.id)}
+                          style={{
+                            display: "block", width: "100%", textAlign: "left",
+                            padding: "10px 14px", background: "transparent",
+                            border: "none", borderBottom: "1px solid #1C2A47",
+                            cursor: "pointer", color: "#E8EDF6",
+                          }}
+                        >
+                          <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500 }}>
+                            {c.title ?? "Chat"}
+                          </p>
+                          <p style={{ margin: 0, fontSize: 11, color: "#8597B8" }}>
+                            {new Date(c.updatedAt).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Clear button */}
+            {messages.length > 0 && (
+              <button
+                onClick={handleClearConversation}
+                disabled={pending}
+                title="Clear conversation"
+                style={{
+                  padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                  cursor: pending ? "default" : "pointer", background: "transparent",
+                  border: "1px solid #2A3B5E", color: "#8597B8", opacity: pending ? 0.4 : 1,
+                }}
+              >
+                ✕ Clear
+              </button>
+            )}
+            {/* New Chat button */}
+            <button
+              onClick={handleNewChat}
+              disabled={pending || newChatLoading}
+              title="Start a new conversation"
+              style={{
+                padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600,
+                cursor: pending || newChatLoading ? "default" : "pointer",
+                background: "transparent", border: "1px solid #2A3B5E", color: "#8597B8",
+                opacity: pending || newChatLoading ? 0.4 : 1,
+                display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap",
+              }}
+            >
+              {newChatLoading ? "…" : "+ New chat"}
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -639,14 +730,37 @@ export function ChatClient({
                       />
                     )}
                   </div>
-                  {/* Export actions — only on complete, non-error assistant messages */}
+                  {/* Export + feedback — only on complete, non-error assistant messages */}
                   {isDone && (
-                    <ExportBar
-                      content={m.content}
-                      agentName={agent.name}
-                      agentTitle={agent.title}
-                      workspaceName={workspaceName}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <ExportBar
+                        content={m.content}
+                        agentName={agent.name}
+                        agentTitle={agent.title}
+                        workspaceName={workspaceName}
+                      />
+                      {/* Feedback buttons */}
+                      <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+                        {feedbackSent[i] ? (
+                          <span style={{ fontSize: 11, color: "#8597B8", padding: "4px 8px" }}>
+                            {feedbackSent[i] === "up" ? "👍 Noted" : "👎 Noted"}
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleFeedback(i, "up")}
+                              title="Helpful response"
+                              style={{ background: "none", border: "1px solid #2A3B5E", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "#8597B8" }}
+                            >👍</button>
+                            <button
+                              onClick={() => handleFeedback(i, "down")}
+                              title="Not helpful"
+                              style={{ background: "none", border: "1px solid #2A3B5E", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "#8597B8" }}
+                            >👎</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

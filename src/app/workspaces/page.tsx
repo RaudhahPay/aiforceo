@@ -4,7 +4,7 @@ import { getCurrentWorkspace } from "@/lib/workspace";
 import { getRemainingTokens, TIER_MONTHLY_TOKENS } from "@/lib/credits";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireUser } from "@/lib/auth/require";
-import { switchWorkspace, createWorkspace } from "@/server/actions/workspaces";
+import { switchWorkspace, createWorkspace, deleteWorkspace } from "@/server/actions/workspaces";
 import Link from "next/link";
 
 const TIER_LABEL: Record<string, string> = {
@@ -76,7 +76,7 @@ export default async function WorkspacesPage() {
 
   return (
     <div
-      className="grid min-h-screen"
+      className="grid min-h-screen app-grid"
       style={{ gridTemplateColumns: "240px 1fr" }}
     >
       <Sidebar
@@ -206,6 +206,23 @@ export default async function WorkspacesPage() {
                     <Link href="/onboarding" className="btn btn-ghost text-sm">
                       Complete setup
                     </Link>
+                  )}
+                  {!isActive && (allWorkspaces ?? []).length > 1 && (
+                    <form
+                      action={deleteWorkspace}
+                      onSubmit={(e) => {
+                        if (!confirm(`Delete "${ws.name}"? This cannot be undone.`)) e.preventDefault();
+                      }}
+                    >
+                      <input type="hidden" name="workspace_id" value={ws.id} />
+                      <button
+                        type="submit"
+                        className="btn btn-ghost text-sm"
+                        style={{ color: "var(--red)" }}
+                      >
+                        Delete
+                      </button>
+                    </form>
                   )}
                 </div>
               </div>

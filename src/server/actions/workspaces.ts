@@ -71,6 +71,41 @@ export async function newConversation(
   return { id: data.id };
 }
 
+/** Delete a workspace. Cannot delete last workspace or active workspace if it's the only one. */
+export async function deleteWorkspace(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const wsId = formData.get("workspace_id")?.toString();
+  if (!wsId) return;
+
+  const admin = createSupabaseAdminClient();
+
+  // Must own this workspace
+  const { data: ws } = await admin
+    .from("workspaces")
+    .select("id")
+    .eq("id", wsId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!ws) return;
+
+  // Must not be last workspace
+  const { count } = await admin
+    .from("workspaces")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", user.id);
+  if ((count ?? 0) <= 1) throw new Error("Cannot delete your only workspace.");
+
+  await admin.from("workspaces").delete().eq("id", wsId).eq("owner_id", user.id);
+
+  // Clear active cookie if it pointed to the deleted workspace
+  const jar = await cookies();
+  if (jar.get(ACTIVE_WS_COOKIE)?.value === wsId) {
+    jar.delete(ACTIVE_WS_COOKIE);
+  }
+  revalidatePath("/", "layout");
+  redirect("/workspaces");
+}
+
 const CreateSchema = z.object({
   name: z.string().min(2).max(80).trim(),
 });

@@ -36,7 +36,7 @@ export default async function ConnectorsPage({
 
   return (
     <div
-      className="grid min-h-screen"
+      className="grid min-h-screen app-grid"
       style={{ gridTemplateColumns: "240px 1fr" }}
     >
       <Sidebar

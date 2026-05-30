@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { updateProfile, updateBriefPrefs, deleteMemory } from "@/server/actions/settings";
 import { createPortalSession, createTopupCheckoutSession } from "@/server/actions/billing";
+import { inviteTeamMember, revokeInvite } from "@/server/actions/invites";
 import type { AgentMemory, MemoryCategory } from "@/lib/memory";
 
 /* ─── CONSTANTS ─────────────────────────────────────────────── */
@@ -642,159 +643,105 @@ function BillingTab({
 }
 
 /* ─── TEAM TAB ──────────────────────────────────────────────── */
-function TeamTab({ ownerEmail }: { ownerEmail: string }) {
+type Invite = { id: string; email: string; role: string; accepted_at: string | null; created_at: string; expires_at: string };
+
+function TeamTab({ ownerEmail, invites: initialInvites }: { ownerEmail: string; invites: Invite[] }) {
+  const [invites, setInvites] = useState<Invite[]>(initialInvites);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"member" | "manager">("member");
+  const [sending, setSending] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
+    setInviteMsg(null);
+    const res = await inviteTeamMember({ email, role });
+    setSending(false);
+    if (res.ok) {
+      setInviteMsg({ ok: true, text: `Invite sent to ${email}` });
+      setEmail("");
+    } else {
+      setInviteMsg({ ok: false, text: res.error });
+    }
+  }
+
+  async function handleRevoke(inviteId: string) {
+    if (!confirm("Revoke this invite?")) return;
+    setInvites((iv) => iv.filter((i) => i.id !== inviteId));
+    await revokeInvite(inviteId);
+  }
+
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 720 }}>
       {/* Owner card */}
       <div className="card" style={{ padding: 24 }}>
-        <h3 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 700 }}>
-          Current Members
-        </h3>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "12px 14px",
-            background: "var(--soft)",
-            borderRadius: 10,
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              background: "var(--accent)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 14,
-              fontWeight: 700,
-              color: "#fff",
-              flexShrink: 0,
-            }}
-          >
+        <h3 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 700 }}>Current Members</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "var(--soft)", borderRadius: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
             {ownerEmail.charAt(0).toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>
-              {ownerEmail}
-            </p>
-            <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
-              Owner · Full access
-            </p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{ownerEmail}</p>
+            <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>Owner · Full access</p>
           </div>
-          <span
-            style={{
-              padding: "3px 10px",
-              borderRadius: 20,
-              fontSize: 10,
-              fontWeight: 700,
-              background: "rgba(63,185,132,0.12)",
-              color: "#3FB984",
-            }}
-          >
-            OWNER
-          </span>
+          <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "rgba(63,185,132,0.12)", color: "#3FB984" }}>OWNER</span>
         </div>
       </div>
 
-      {/* Invite coming soon */}
-      <div
-        className="card"
-        style={{
-          padding: 28,
-          border: "2px dashed var(--line)",
-          background: "var(--soft)",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ fontSize: 32, marginBottom: 12 }}>👥</div>
-        <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700 }}>
-          Team Invites — Coming Soon
-        </h3>
-        <p
-          style={{
-            margin: "0 0 6px",
-            fontSize: 13,
-            color: "var(--muted)",
-            maxWidth: 480,
-            marginInline: "auto",
-            lineHeight: 1.6,
-          }}
-        >
-          Invite team members to view reports and chat with your AI C-Suite.
-          Assign roles — <strong>Viewer</strong>, <strong>Editor</strong>, or{" "}
-          <strong>Manager</strong> — per workspace.
-        </p>
-        <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)" }}>
-          Available on Starter plan and above.
-        </p>
+      {/* Invite form */}
+      <div className="card" style={{ padding: 24 }}>
+        <h3 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700 }}>Invite a Team Member</h3>
+        <form onSubmit={(e) => void handleInvite(e)} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <input
+            type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder="colleague@company.com" className="input text-sm"
+            style={{ flex: 2, minWidth: 200 }}
+          />
+          <select value={role} onChange={(e) => setRole(e.target.value as "member" | "manager")}
+            className="input text-sm" style={{ flex: 1, minWidth: 120 }}>
+            <option value="member">Member</option>
+            <option value="manager">Manager</option>
+          </select>
+          <button type="submit" disabled={sending} className="btn text-sm" style={{ whiteSpace: "nowrap" }}>
+            {sending ? "Sending…" : "Send invite"}
+          </button>
+        </form>
+        {inviteMsg && (
+          <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 600, color: inviteMsg.ok ? "var(--success)" : "var(--red)" }}>
+            {inviteMsg.ok ? "✓" : "⚠"} {inviteMsg.text}
+          </p>
+        )}
       </div>
 
-      {/* What's coming */}
-      <div className="card" style={{ padding: 20 }}>
-        <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700 }}>
-          Planned roles
-        </h4>
-        <div style={{ display: "grid", gap: 10 }}>
-          {[
-            {
-              role: "Manager",
-              desc: "Full access — edit profile, view all dashboards, chat with all AI execs",
-              color: "#7C3AED",
-            },
-            {
-              role: "Editor",
-              desc: "Edit KPIs and chat with AI execs, cannot change billing or team",
-              color: "#0096C7",
-            },
-            {
-              role: "Viewer",
-              desc: "Read-only — view dashboards and conversation history",
-              color: "#3FB984",
-            },
-          ].map(({ role, desc, color }) => (
-            <div
-              key={role}
-              style={{
-                display: "flex",
-                gap: 12,
-                alignItems: "flex-start",
-                padding: "10px 12px",
-                background: "var(--soft)",
-                borderRadius: 8,
-              }}
-            >
-              <span
-                style={{
-                  padding: "3px 10px",
-                  borderRadius: 20,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  background: color + "18",
-                  color,
-                  whiteSpace: "nowrap",
-                  marginTop: 1,
-                }}
-              >
-                {role.toUpperCase()}
-              </span>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 12,
-                  color: "var(--muted)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {desc}
-              </p>
-            </div>
-          ))}
+      {/* Pending invites */}
+      {invites.length > 0 && (
+        <div className="card" style={{ padding: 24 }}>
+          <h3 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700 }}>Pending Invites</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {invites.map((inv) => {
+              const expired = new Date(inv.expires_at) < new Date();
+              const accepted = !!inv.accepted_at;
+              return (
+                <div key={inv.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--soft)", borderRadius: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{inv.email}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+                      {inv.role} · {accepted ? "Accepted ✓" : expired ? "Expired" : "Pending"}
+                    </p>
+                  </div>
+                  {!accepted && (
+                    <button onClick={() => void handleRevoke(inv.id)}
+                      className="btn btn-ghost text-xs" style={{ color: "var(--red)" }}>
+                      Revoke
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -815,6 +762,7 @@ export function SettingsClient({
   briefTimezone,
   briefHour,
   memories: initialMemories,
+  invites: initialInvites = [],
 }: {
   workspaceId: string;
   tier: string;
@@ -830,6 +778,7 @@ export function SettingsClient({
   briefTimezone: string;
   briefHour: number;
   memories: AgentMemory[];
+  invites?: Invite[];
 }) {
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
@@ -1163,7 +1112,7 @@ export function SettingsClient({
       )}
 
       {/* ── Team tab ── */}
-      {activeTab === "team" && <TeamTab ownerEmail={ownerEmail} />}
+      {activeTab === "team" && <TeamTab ownerEmail={ownerEmail} invites={initialInvites} />}
 
       {/* ── Notifications tab ── */}
       {activeTab === "notifications" && (

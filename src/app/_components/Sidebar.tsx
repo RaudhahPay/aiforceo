@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AGENTS, type AgentRole } from "@/lib/prompts";
 import { CreditMeter } from "./CreditMeter";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { MobileSidebarToggle } from "./MobileSidebarToggle";
 import { signOut } from "@/server/actions/auth";
 import type { WorkspaceStub } from "@/lib/workspace";
 
@@ -41,16 +42,19 @@ export function Sidebar({
   allWorkspaces?: WorkspaceStub[];
 }) {
   return (
-    <aside
-      style={{
-        width: 240,
-        minHeight: "100vh",
-        background: D.bg,
-        borderRight: `1px solid ${D.line}`,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <>
+      <MobileSidebarToggle />
+      <aside
+        className="app-sidebar"
+        style={{
+          width: 240,
+          minHeight: "100vh",
+          background: D.bg,
+          borderRight: `1px solid ${D.line}`,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
       {/* Logo */}
       <div
         style={{
@@ -227,6 +231,7 @@ export function Sidebar({
         </form>
       </div>
     </aside>
+    </>
   );
 }
 

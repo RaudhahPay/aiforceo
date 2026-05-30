@@ -10,10 +10,12 @@ const VALID: AgentRole[] = ["cmo", "coo", "cfo", "ceo", "cto", "aria"];
 
 export default async function AgentPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ role: string }>;
+  searchParams: Promise<{ conv?: string }>;
 }) {
-  const { role: rawRole } = await params;
+  const [{ role: rawRole }, { conv: requestedConvId }] = await Promise.all([params, searchParams]);
   const role = rawRole.toLowerCase() as AgentRole;
   if (!VALID.includes(role)) notFound();
 
@@ -31,14 +33,17 @@ export default async function AgentPage({
   // already established via getCurrentWorkspace() (which uses the RLS client
   // and confirmed auth.uid() = owner_id).
   const admin = createSupabaseAdminClient();
-  let { data: conversation } = await admin
+  // If a specific conversation was requested (from history panel), load it.
+  // Otherwise load the most recently updated conversation.
+  const convQuery = admin
     .from("conversations")
     .select("id, agent_role, workspace_id, title, created_at, updated_at")
     .eq("workspace_id", workspace.id)
-    .eq("agent_role", role)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("agent_role", role);
+
+  let { data: conversation } = requestedConvId
+    ? await convQuery.eq("id", requestedConvId).maybeSingle()
+    : await convQuery.order("updated_at", { ascending: false }).limit(1).maybeSingle();
 
   if (!conversation) {
     const ins = await admin
@@ -56,15 +61,24 @@ export default async function AgentPage({
     conversation = ins.data;
   }
 
-  const { data: messages } = await admin
-    .from("messages")
-    .select("id, role, content, created_at")
-    .eq("conversation_id", conversation.id)
-    .order("created_at", { ascending: true });
+  const [{ data: messages }, { data: pastConversations }] = await Promise.all([
+    admin
+      .from("messages")
+      .select("id, role, content, created_at")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: true }),
+    admin
+      .from("conversations")
+      .select("id, title, updated_at")
+      .eq("workspace_id", workspace.id)
+      .eq("agent_role", role)
+      .order("updated_at", { ascending: false })
+      .limit(20),
+  ]);
 
   return (
     <div
-      className="grid min-h-screen"
+      className="grid min-h-screen app-grid"
       style={{ gridTemplateColumns: "240px 1fr" }}
     >
       <Sidebar
@@ -87,6 +101,11 @@ export default async function AgentPage({
         initialMessages={(messages ?? []).map((m) => ({
           role: m.role as "user" | "assistant",
           content: m.content,
+        }))}
+        pastConversations={(pastConversations ?? []).map((c) => ({
+          id: c.id,
+          title: c.title ?? "Chat",
+          updatedAt: c.updated_at,
         }))}
       />
     </div>

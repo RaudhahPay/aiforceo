@@ -7,6 +7,9 @@ const PUBLIC_PATHS = [
   "/pricing",
   "/forgot-password",
   "/reset-password",
+  // Team invite accept page — must be public so invitees can open the link
+  "/invite/accept",
+  "/api/invite/accept",
   // Auth callback + payment webhook
   "/api/auth/callback",
   "/api/stripe/webhook",

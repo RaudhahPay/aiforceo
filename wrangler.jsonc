@@ -10,6 +10,7 @@
   //   GOOGLE_CLIENT_ID
   //   GOOGLE_CLIENT_SECRET
   //   CRON_SECRET  (shared with the boardroom-ai-cron Worker)
+  //   RESEND_API_KEY  (for morning brief + invite emails)
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "boardroom-ai",
   "main": ".open-next/worker.js",

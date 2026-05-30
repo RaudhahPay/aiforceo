@@ -6,6 +6,7 @@ import { getAnthropic, ANTHROPIC_MODEL } from "@/lib/anthropic";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { getRemainingTokens, recordUsage } from "@/lib/credits";
 import { loadMemories } from "@/lib/memory";
+import { sendMorningBriefEmail } from "@/lib/email";
 
 const MIN_TOKENS_FOR_BRIEF = 5_000;
 
@@ -172,6 +173,29 @@ export async function generateMorningBrief(
     .from("conversations")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", conversationId);
+
+  // Send email to workspace owner (fire-and-forget, non-fatal)
+  try {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", (await admin.from("workspaces").select("owner_id").eq("id", workspaceId).maybeSingle()).data?.owner_id ?? "")
+      .maybeSingle();
+
+    if (profile?.email) {
+      const date = new Date().toLocaleDateString("en-MY", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+      void sendMorningBriefEmail({
+        toEmail: profile.email,
+        workspaceName,
+        briefContent: fullText,
+        date,
+      });
+    }
+  } catch {
+    // Email failure is non-fatal — brief is saved in DB regardless
+  }
 
   return { ok: true, workspaceId, messageId: aMsg.id };
 }
