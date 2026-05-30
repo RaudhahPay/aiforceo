@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "agents": "Agents",
+    "search": "Search",
+    "saved": "Saved",
+    "workspaces": "Workspaces",
+    "connectors": "Connectors",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "dashboard": {
+    "title": "Business Command Centre",
+    "connectLive": "Connect live data",
+    "editKpis": "Edit KPIs",
+    "sampleNumbers": "These are sample numbers.",
+    "enterNumbers": "Enter my numbers →",
+    "csuiteActivity": "Your C-Suite Activity",
+    "executivesActive": "Executives Active",
+    "messagesMtd": "Messages This Month",
+    "creditsLeft": "AI Credits Left"
+  },
+  "agents": {
+    "defaultTitle": "Default C-Suite",
+    "customTitle": "Custom Agents",
+    "createCustom": "Create custom agent",
+    "noCustom": "No custom agents yet",
+    "noCustomDesc": "Create a specialist AI executive with a custom system prompt."
+  },
+  "chat": {
+    "newChat": "+ New chat",
+    "clearChat": "✕ Clear",
+    "history": "⏱ History",
+    "pastConversations": "Past conversations",
+    "placeholder": "Ask {agentName} anything…",
+    "helpful": "👍 Noted",
+    "notHelpful": "👎 Noted",
+    "save": "Save this response",
+    "unsave": "Remove from saved"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your business profile, billing, team, and AI usage.",
+    "tabs": {
+      "profile": "Company Profile",
+      "voice": "Brand Voice",
+      "financials": "Financials",
+      "usage": "Usage",
+      "billing": "Billing",
+      "team": "Team",
+      "notifications": "Notifications",
+      "memory": "AI Memory"
+    },
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "✓ Saved"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Less than one junior employee. An entire executive team.",
+    "monthly": "/ month",
+    "mostPopular": "MOST POPULAR",
+    "choosePlan": "Choose {plan}",
+    "comingSoon": "Coming soon",
+    "topup": "Token Top-up",
+    "buyTopup": "Buy top-up →",
+    "dfy": "Done For You",
+    "dfyDesc": "Our team personally onboards your business.",
+    "contactUs": "Contact us →"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "cancel": "Cancel",
+    "back": "← Back",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "close": "Close"
+  }
+}

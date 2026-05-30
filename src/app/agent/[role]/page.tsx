@@ -127,6 +127,7 @@ export default async function AgentPage({
         initialMessages={(messages ?? []).map((m) => ({
           role: m.role as "user" | "assistant",
           content: m.content,
+          id: m.id,
         }))}
         pastConversations={(pastConversations ?? []).map((c) => ({
           id: c.id,

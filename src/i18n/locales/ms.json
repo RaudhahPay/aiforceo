@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "dashboard": "Papan Pemuka",
+    "agents": "Ejen AI",
+    "search": "Carian",
+    "saved": "Disimpan",
+    "workspaces": "Ruang Kerja",
+    "connectors": "Penyambung",
+    "settings": "Tetapan",
+    "signOut": "Log Keluar"
+  },
+  "dashboard": {
+    "title": "Pusat Kawalan Perniagaan",
+    "connectLive": "Sambung Data Langsung",
+    "editKpis": "Edit KPI",
+    "sampleNumbers": "Ini adalah nombor contoh.",
+    "enterNumbers": "Masukkan nombor saya →",
+    "csuiteActivity": "Aktiviti C-Suite Anda",
+    "executivesActive": "Eksekutif Aktif",
+    "messagesMtd": "Mesej Bulan Ini",
+    "creditsLeft": "Kredit AI Tinggal"
+  },
+  "agents": {
+    "defaultTitle": "C-Suite Lalai",
+    "customTitle": "Ejen Tersuai",
+    "createCustom": "Cipta ejen tersuai",
+    "noCustom": "Tiada ejen tersuai lagi",
+    "noCustomDesc": "Cipta pakar AI dengan arahan sistem tersuai."
+  },
+  "chat": {
+    "newChat": "+ Sembang Baru",
+    "clearChat": "✕ Kosongkan",
+    "history": "⏱ Sejarah",
+    "pastConversations": "Perbualan Lepas",
+    "placeholder": "Tanya {agentName} apa sahaja…",
+    "helpful": "👍 Terima kasih",
+    "notHelpful": "👎 Diambil perhatian",
+    "save": "Simpan respons ini",
+    "unsave": "Buang dari simpanan"
+  },
+  "settings": {
+    "title": "Tetapan",
+    "subtitle": "Urus profil perniagaan, pengebilan, pasukan, dan penggunaan AI anda.",
+    "tabs": {
+      "profile": "Profil Syarikat",
+      "voice": "Suara Jenama",
+      "financials": "Kewangan",
+      "usage": "Penggunaan",
+      "billing": "Pengebilan",
+      "team": "Pasukan",
+      "notifications": "Pemberitahuan",
+      "memory": "Ingatan AI"
+    },
+    "save": "Simpan perubahan",
+    "saving": "Menyimpan…",
+    "saved": "✓ Disimpan"
+  },
+  "pricing": {
+    "title": "Harga",
+    "subtitle": "Lebih murah dari seorang pekerja junior. Seluruh pasukan eksekutif.",
+    "monthly": "/ bulan",
+    "mostPopular": "PALING POPULAR",
+    "choosePlan": "Pilih {plan}",
+    "comingSoon": "Akan datang",
+    "topup": "Tambah Token",
+    "buyTopup": "Beli tambah →",
+    "dfy": "Kami Uruskan",
+    "dfyDesc": "Pasukan kami akan menguruskan onboarding perniagaan anda.",
+    "contactUs": "Hubungi kami →"
+  },
+  "common": {
+    "loading": "Memuatkan…",
+    "error": "Berlaku ralat",
+    "cancel": "Batal",
+    "back": "← Kembali",
+    "create": "Cipta",
+    "delete": "Padam",
+    "edit": "Edit",
+    "save": "Simpan",
+    "close": "Tutup"
+  }
+}

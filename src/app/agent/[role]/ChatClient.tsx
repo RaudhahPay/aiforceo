@@ -11,8 +11,9 @@ import {
   exportCSV,
 } from "@/lib/export";
 import { newConversation } from "@/server/actions/workspaces";
+import { toggleStarMessage } from "@/server/actions/search";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = { role: "user" | "assistant"; content: string; id?: string };
 
 const QUICK_PROMPTS: Record<AgentRole, string[]> = {
   cmo: [
@@ -312,6 +313,7 @@ export function ChatClient({
   const [newChatLoading, setNewChatLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState<Record<number, "up" | "down">>({});
+  const [starredMsgs, setStarredMsgs] = useState<Record<number, boolean>>({});
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Reset state when conversation switches (workspace change, bfcache restore)
@@ -361,6 +363,14 @@ export function ChatClient({
     if (pending) return;
     if (!confirm("Clear all messages in this conversation? This cannot be undone.")) return;
     setMessages([]);
+  }
+
+  async function handleStar(msgIndex: number, messageId?: string) {
+    const current = !!starredMsgs[msgIndex];
+    setStarredMsgs((prev) => ({ ...prev, [msgIndex]: !current }));
+    if (messageId) {
+      await toggleStarMessage(messageId, !current);
+    }
   }
 
   function handleFeedback(msgIndex: number, direction: "up" | "down") {
@@ -739,8 +749,14 @@ export function ChatClient({
                         agentTitle={agent.title}
                         workspaceName={workspaceName}
                       />
-                      {/* Feedback buttons */}
-                      <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+                      {/* Star + Feedback buttons */}
+                      <div style={{ display: "flex", gap: 4, marginLeft: "auto", alignItems: "center" }}>
+                        {/* Star / Save button */}
+                        <button
+                          onClick={() => void handleStar(i, m.id)}
+                          title={starredMsgs[i] ? "Remove from saved" : "Save this response"}
+                          style={{ background: "none", border: "1px solid #2A3B5E", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: starredMsgs[i] ? "#D4A017" : "#8597B8" }}
+                        >{starredMsgs[i] ? "⭐" : "☆"}</button>
                         {feedbackSent[i] ? (
                           <span style={{ fontSize: 11, color: "#8597B8", padding: "4px 8px" }}>
                             {feedbackSent[i] === "up" ? "👍 Noted" : "👎 Noted"}

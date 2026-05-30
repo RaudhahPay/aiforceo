@@ -118,9 +118,39 @@ export default function PricingPage() {
         </form>
       </div>
 
-      <p className="text-center text-sm text-[var(--muted)] mt-12">
-        Need a Done-For-You setup? <Link href="/login" className="underline">Contact us</Link> — starting $5,000.
-      </p>
+      {/* Done-For-You tier */}
+      <div className="mt-8 card p-8" style={{ background: "linear-gradient(135deg, rgba(197,165,114,0.08), rgba(197,165,114,0.03))", border: "1px solid rgba(197,165,114,0.25)" }}>
+        <div className="flex flex-col md:flex-row md:items-center gap-6 justify-between">
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gold)" }}>Done For You</span>
+            <h3 className="serif text-2xl mt-1 mb-2">We set it all up for you</h3>
+            <p className="text-sm text-[var(--muted)] max-w-lg">
+              Our team personally onboards your business — 60-minute strategy session, full C-suite configuration, custom agent personas, and a 30-day check-in. Starting USD 2,000.
+            </p>
+            <ul className="mt-3 space-y-1">
+              {[
+                "White-glove onboarding by our team",
+                "Custom agent personas built for your industry",
+                "Dedicated Slack support channel (30 days)",
+                "Monthly strategy call with Boardroom AI team",
+              ].map((f) => (
+                <li key={f} className="text-sm flex gap-2">
+                  <span style={{ color: "var(--gold)", fontWeight: 700 }}>✓</span> {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="shrink-0">
+            <a
+              href="mailto:hello@aiforceo.app?subject=Done-For-You%20Inquiry"
+              className="btn"
+              style={{ background: "var(--gold)", color: "#0E1726", border: "none", textDecoration: "none", display: "inline-flex" }}
+            >
+              Contact us →
+            </a>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
