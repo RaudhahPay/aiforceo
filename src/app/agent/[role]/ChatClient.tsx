@@ -291,7 +291,7 @@ export function ChatClient({
   initialMessages,
   pastConversations = [],
 }: {
-  role: AgentRole;
+  role: string; // AgentRole | custom agent UUID
   agent: {
     name: string;
     title: string;
@@ -648,7 +648,7 @@ export function ChatClient({
                   margin: "0 auto",
                 }}
               >
-                {QUICK_PROMPTS[role].map((q) => (
+                {QUICK_PROMPTS[role as import("./../../../lib/prompts").AgentRole] ?? [].map((q) => (
                   <button key={q} onClick={() => send(q)} className="chip">
                     {q}
                   </button>
@@ -839,7 +839,7 @@ export function ChatClient({
           {/* Quick prompts shown after conversation starts */}
           {messages.length > 0 && (
             <div className="flex gap-2 mt-3 flex-wrap">
-              {QUICK_PROMPTS[role].map((q) => (
+              {QUICK_PROMPTS[role as import("./../../../lib/prompts").AgentRole] ?? [].map((q) => (
                 <button
                   key={q}
                   onClick={() => send(q)}

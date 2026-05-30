@@ -6,7 +6,8 @@ import { getRemainingTokens, TIER_MONTHLY_TOKENS } from "@/lib/credits";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ChatClient } from "./ChatClient";
 
-const VALID: AgentRole[] = ["cmo", "coo", "cfo", "ceo", "cto", "aria"];
+const BUILTIN_ROLES: AgentRole[] = ["cmo", "coo", "cfo", "ceo", "cto", "aria"];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function AgentPage({
   params,
@@ -16,8 +17,10 @@ export default async function AgentPage({
   searchParams: Promise<{ conv?: string }>;
 }) {
   const [{ role: rawRole }, { conv: requestedConvId }] = await Promise.all([params, searchParams]);
-  const role = rawRole.toLowerCase() as AgentRole;
-  if (!VALID.includes(role)) notFound();
+  const role = rawRole.toLowerCase();
+  const isBuiltin = BUILTIN_ROLES.includes(role as AgentRole);
+  const isCustom  = UUID_RE.test(role);
+  if (!isBuiltin && !isCustom) notFound();
 
   const ctx = await getCurrentWorkspace();
   if (!ctx) {
@@ -61,6 +64,29 @@ export default async function AgentPage({
     conversation = ins.data;
   }
 
+  // Load custom agent metadata if this is a UUID role
+  let customAgentMeta: { name: string; title: string; tag: string; gradient: readonly [string, string] } | null = null;
+  if (isCustom) {
+    const { data: ca } = await admin
+      .from("custom_agents")
+      .select("name, title, description, gradient_from, gradient_to")
+      .eq("id", role)
+      .eq("workspace_id", workspace.id)
+      .maybeSingle();
+    if (ca) {
+      customAgentMeta = {
+        name: ca.name,
+        title: ca.title,
+        tag: ca.description || "Custom specialist",
+        gradient: [ca.gradient_from, ca.gradient_to] as const,
+      };
+    } else {
+      notFound();
+    }
+  }
+
+  const agentMeta = customAgentMeta ?? AGENTS[role as AgentRole];
+
   const [{ data: messages }, { data: pastConversations }] = await Promise.all([
     admin
       .from("messages")
@@ -82,7 +108,7 @@ export default async function AgentPage({
       style={{ gridTemplateColumns: "240px 1fr" }}
     >
       <Sidebar
-        active={role}
+        active={isBuiltin ? (role as AgentRole) : ("agents" as const)}
         remainingTokens={remaining}
         monthlyQuota={quota}
         workspaceName={workspace.name}
@@ -95,7 +121,7 @@ export default async function AgentPage({
       <ChatClient
         key={conversation.id}
         role={role}
-        agent={AGENTS[role]}
+        agent={agentMeta}
         workspaceName={workspace.name}
         conversationId={conversation.id}
         initialMessages={(messages ?? []).map((m) => ({
