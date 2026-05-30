@@ -11,6 +11,9 @@ type ActivePage =
   | "workspaces"
   | "connectors"
   | "settings"
+  | "agents"
+  | "search"
+  | "saved"
   | AgentRole;
 
 const ROLES: AgentRole[] = ["aria", "cmo", "coo", "cfo", "ceo", "cto"];
@@ -128,6 +131,15 @@ export function Sidebar({
         <Section title="Main">
           <Item href="/dashboard" active={active === "dashboard"} icon="⌂">
             Dashboard
+          </Item>
+          <Item href="/agents" active={active === "agents"} icon="🤖">
+            Agents
+          </Item>
+          <Item href="/search" active={active === "search"} icon="🔍">
+            Search
+          </Item>
+          <Item href="/saved" active={active === "saved"} icon="⭐">
+            Saved
           </Item>
           <Item href="/workspaces" active={active === "workspaces"} icon="◫">
             Workspaces

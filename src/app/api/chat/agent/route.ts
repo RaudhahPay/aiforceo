@@ -15,9 +15,12 @@ import { getRemainingTokens, recordUsage } from "@/lib/credits";
 import { buildSheetsContext, fetchSheetByUrl } from "@/lib/google-sheets";
 import { loadMemories, extractAndSaveMemories } from "@/lib/memory";
 
+const BUILTIN_ROLES = ["cmo", "coo", "cfo", "ceo", "cto", "aria"] as const;
+
 const RequestSchema = z.object({
   conversationId: z.string().uuid(),
-  role: z.enum(["cmo", "coo", "cfo", "ceo", "cto", "aria"]),
+  // Built-in roles OR custom agent UUID
+  role: z.string().min(3),
   messages: z
     .array(
       z.object({
@@ -148,7 +151,32 @@ export async function POST(req: NextRequest): Promise<Response> {
         "(2) Copy the spreadsheet contents and paste the raw data directly into this chat."
       : undefined;
 
-  const system = buildSystemPrompt(role as AgentRole, {
+  // For custom agents (UUID role), load the agent's system prompt override
+  let customAgentSystemPrompt: string | null = null;
+  const isCustomRole = !BUILTIN_ROLES.includes(role as typeof BUILTIN_ROLES[number]);
+  if (isCustomRole) {
+    const { data: customAgent } = await admin
+      .from("custom_agents")
+      .select("system_prompt, name, title")
+      .eq("id", role)
+      .eq("workspace_id", workspace.id)
+      .maybeSingle();
+    customAgentSystemPrompt = customAgent?.system_prompt ?? null;
+    if (!customAgentSystemPrompt) return makeJson({ error: "Custom agent not found." }, 404);
+  }
+
+  const system = customAgentSystemPrompt
+    ? [
+        customAgentSystemPrompt,
+        `\n\n== Business profile ==\nName: ${workspace.name}`,
+        profile?.industry ? `Industry: ${profile.industry}` : "",
+        voice?.voice_summary ? `\n\n== Brand voice ==\n${voice.voice_summary}` : "",
+        memories.length > 0 ? `\n\n== What I remember about this business ==\n${memories.map(m => `- [${m.category}] ${m.content}`).join("\n")}` : "",
+        connectorData ? `\n\n${connectorData}` : "",
+      ].filter(Boolean).join("\n")
+    : null;
+
+  const finalSystem = system ?? buildSystemPrompt(role as AgentRole, {
     businessName: workspace.name,
     industry: profile?.industry ?? undefined,
     size: profile?.size ?? undefined,
@@ -188,7 +216,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         const anthropicStream = anthropic.messages.stream({
           model: ANTHROPIC_MODEL,
           max_tokens: 1500,
-          system,
+          system: finalSystem,
           messages: messages.map((m) => ({ role: m.role, content: m.content })),
         });
 
