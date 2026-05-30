@@ -1,12 +1,14 @@
 {
   // Boardroom AI · Cloudflare Workers configuration via @opennextjs/cloudflare.
   // The anon Supabase key is public by design and may live here.
-  // The service_role key, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY,
-  // and STRIPE_WEBHOOK_SECRET are stored as secrets:
-  //   pnpm wrangler secret put SUPABASE_SERVICE_ROLE_KEY
-  //   pnpm wrangler secret put ANTHROPIC_API_KEY
-  //   pnpm wrangler secret put STRIPE_SECRET_KEY
-  //   pnpm wrangler secret put STRIPE_WEBHOOK_SECRET
+  // Stripe price IDs are non-secret and live here as plaintext vars.
+  // The following are stored as encrypted secrets (NOT in this file):
+  //   SUPABASE_SERVICE_ROLE_KEY
+  //   ANTHROPIC_API_KEY
+  //   STRIPE_SECRET_KEY
+  //   STRIPE_WEBHOOK_SECRET
+  //   GOOGLE_CLIENT_ID
+  //   GOOGLE_CLIENT_SECRET
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "boardroom-ai",
   "main": ".open-next/worker.js",
@@ -22,10 +24,10 @@
     "NEXT_PUBLIC_SUPABASE_URL": "https://tfduiiiiezpepzhyagwf.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZHVpaWlpZXpwZXB6aHlhZ3dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTI5MTMsImV4cCI6MjA5NDU2ODkxM30.5EnFhbQbCpYWQNnpfSCjWTRrN_-J8rKb54-OFLpEHvU",
     "ANTHROPIC_MODEL": "claude-sonnet-4-6",
-    "STRIPE_PRICE_STARTER": "price_REPLACE_WHEN_STRIPE_READY",
-    "STRIPE_PRICE_GROWTH": "price_REPLACE_WHEN_STRIPE_READY",
-    "STRIPE_PRICE_SCALE": "price_REPLACE_WHEN_STRIPE_READY",
-    "STRIPE_PRICE_SETUP": "price_REPLACE_WHEN_STRIPE_READY",
-    "STRIPE_PRICE_TOPUP": "price_REPLACE_WHEN_STRIPE_READY"
+    "STRIPE_PRICE_STARTER": "price_1Tc2vaPgT26z0VtYCzf4xfPd",
+    "STRIPE_PRICE_GROWTH":  "price_1Tc2vjPgT26z0VtYPJINDC2o",
+    "STRIPE_PRICE_SCALE":   "price_1Tc2vjPgT26z0VtY3fVBakRa",
+    "STRIPE_PRICE_SETUP":   "price_1TcBdPPgT26z0VtYrZfm15Gh",
+    "STRIPE_PRICE_TOPUP":   "price_1TcBdPPgT26z0VtYDnmwpfmG"
   }
 }

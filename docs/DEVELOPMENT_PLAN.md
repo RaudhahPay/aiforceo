@@ -376,84 +376,73 @@ Every feature below lists the primary source files responsible for it. When you 
 
 ---
 
-### 1.1 Stripe Integration 🔴
+### 1.1 Stripe Integration ✅
 
 **Core function:** Users can pay for access; tokens and tier updated automatically on payment.
 
 #### 1.1.1 Stripe account setup
-- [ ] Create Stripe account (test mode first)
-- [ ] Enable all required payment methods (card, FPX for MY market)
+- [x] Stripe account active
+- [x] Payment methods enabled (card)
+- [ ] Enable FPX for MY market (optional — do in Stripe Dashboard if needed)
 - [ ] Configure Stripe tax settings if applicable
 
-#### 1.1.2 Create Stripe products & prices
-- [ ] **Setup Fee** — one-time payment (e.g., RM 97 or USD 29)
-  - [ ] Create product in Stripe Dashboard
-  - [ ] Copy price ID → `STRIPE_PRICE_SETUP`
-- [ ] **Starter plan** — monthly subscription (500K tokens/mo)
-  - [ ] Create product + recurring price
-  - [ ] Copy price ID → `STRIPE_PRICE_STARTER`
-- [ ] **Growth plan** — monthly subscription (2M tokens/mo)
-  - [ ] Create product + recurring price
-  - [ ] Copy price ID → `STRIPE_PRICE_GROWTH`
-- [ ] **Scale plan** — monthly subscription (8M tokens/mo)
-  - [ ] Create product + recurring price
-  - [ ] Copy price ID → `STRIPE_PRICE_SCALE`
-- [ ] **Top-up** — one-time token pack (200K tokens)
-  - [ ] Create product + one-time price
-  - [ ] Copy price ID → `STRIPE_PRICE_TOPUP`
+#### 1.1.2 Create Stripe products & prices ✅
+- [x] **Setup Fee** — `price_1TcBdPPgT26z0VtYrZfm15Gh`
+- [x] **Starter plan** — `price_1Tc2vaPgT26z0VtYCzf4xfPd`
+- [x] **Growth plan** — `price_1Tc2vjPgT26z0VtYPJINDC2o`
+- [x] **Scale plan** — `price_1Tc2vjPgT26z0VtY3fVBakRa`
+- [x] **Top-up pack** — `price_1TcBdPPgT26z0VtYDnmwpfmG`
 
-#### 1.1.3 Configure webhook
-- [ ] In Stripe Dashboard → Webhooks → Add endpoint
-  - [ ] URL: `https://[your-domain]/api/stripe/webhook`
-  - [ ] Events to listen for: `checkout.session.completed`, `invoice.paid`, `customer.subscription.deleted`
-- [ ] Copy webhook signing secret → `STRIPE_WEBHOOK_SECRET`
-- [ ] For local dev: install `stripe listen --forward-to localhost:3001/api/stripe/webhook`
+#### 1.1.3 Configure webhook ✅
+- [x] Webhook endpoint configured in Stripe Dashboard → `https://aiforceo.app/api/stripe/webhook`
+- [x] `STRIPE_WEBHOOK_SECRET` set as encrypted secret in Cloudflare Workers
+- [ ] For local dev: `stripe listen --forward-to localhost:3001/api/stripe/webhook`
+- [ ] Test with `node scripts/test-webhook.mjs checkout_completed <workspace_id> starter`
 
-#### 1.1.4 Environment variables
-- [ ] Set `STRIPE_SECRET_KEY` (test: `sk_test_...` | live: `sk_live_...`)
-- [ ] Set `STRIPE_WEBHOOK_SECRET` (`whsec_...`)
-- [ ] Set all 5 `STRIPE_PRICE_*` variables
-- [ ] Update `.env.local` for dev
-- [ ] Set in Cloudflare Pages env vars for production
+#### 1.1.4 Environment variables ✅
+- [x] `STRIPE_SECRET_KEY` — encrypted secret in Cloudflare Workers
+- [x] `STRIPE_WEBHOOK_SECRET` — encrypted secret in Cloudflare Workers
+- [x] All 5 `STRIPE_PRICE_*` — plaintext vars in Cloudflare Workers + `wrangler.jsonc`
+- [ ] Add test `STRIPE_SECRET_KEY` to `.env.local` for local dev (get from Stripe Dashboard → Test mode)
 
-#### 1.1.5 Checkout flow (already coded — just needs real price IDs)
+#### 1.1.5 Checkout flow ✅
 - [x] `createCheckoutSession()` server action (`src/server/actions/billing.ts`)
+- [x] `isStripeConfigured()` guard — graceful "Coming soon" fallback when keys are dummy
 - [x] Passes `workspace_id` and `plan` as Stripe session metadata
 - [x] Includes setup fee line item if not yet paid (`setup_fee_paid = false`)
 - [x] Redirects to Stripe Checkout hosted page
-- [ ] **Test end-to-end:** click "Start Starter plan" → Stripe test card → confirm webhook fires → workspace tier updated → tokens granted
+- [ ] **End-to-end test:** click "Start Starter plan" → Stripe test card → confirm webhook fires → workspace tier updated → tokens granted
 
-#### 1.1.6 Webhook handler (already coded — just needs real secret)
+#### 1.1.6 Webhook handler ✅
 - [x] `checkout.session.completed` → update tier + quota + grant tokens (idempotent)
 - [x] `invoice.paid` → grant monthly renewal tokens (idempotent via invoice ID)
 - [x] `customer.subscription.deleted` → downgrade to trial
+- [x] Top-up `checkout.session.completed` → `grantTopup()` (idempotent via session ID)
 - [ ] **Test:** use Stripe CLI to replay each event and verify DB state
 
-#### 1.1.7 Top-up purchase flow
-- [ ] Add top-up checkout option to settings or pricing page
-- [ ] Create `createTopupCheckoutSession()` server action
-- [ ] Handle `checkout.session.completed` with `mode=payment` for top-up
-- [ ] Call `grantTopup()` with tokens and invoice ID
-- [ ] Update credit meter UI to reflect new balance
+#### 1.1.7 Top-up purchase flow ✅
+- [x] `createTopupCheckoutSession()` server action — one-time 200K token purchase
+- [x] Webhook handles `type=topup` metadata → calls `grantTopup()`
+- [x] Pricing page: top-up card with "Buy top-up →" button
+- [x] Settings: "Buy 200K tokens →" wired directly to checkout
+- [ ] Post-purchase: verify credit meter reflects new balance in UI
 
 ---
 
-### 1.2 Production Deployment
+### 1.2 Production Deployment ✅
 
-#### 1.2.1 Cloudflare Workers deployment
-- [ ] Run `pnpm cf:build` (OpenNext Cloudflare build)
-- [ ] Run `pnpm cf:preview` (local Workers preview — verify it boots)
-- [ ] Run `pnpm cf:deploy` (deploy to Cloudflare)
-- [ ] Verify all routes load on production URL
+#### 1.2.1 Cloudflare Workers deployment ✅
+- [x] Site live at `https://aiforceo.app`
+- [x] `boardroom-ai` Worker deployed on Cloudflare
+- [x] GitHub repo connected — auto-deploys on push to `main`
+- [ ] After each push: verify all routes load on `https://aiforceo.app`
 
-#### 1.2.2 Cloudflare environment variables
-- [ ] Set `NEXT_PUBLIC_APP_URL` = production domain
-- [ ] Set `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] Set secrets via `pnpm wrangler secret put`:
-  - [ ] `SUPABASE_SERVICE_ROLE_KEY`
-  - [ ] `ANTHROPIC_API_KEY`
-  - [ ] `STRIPE_SECRET_KEY`
-  - [ ] `STRIPE_WEBHOOK_SECRET`
+#### 1.2.2 Cloudflare environment variables ✅
+- [x] `NEXT_PUBLIC_APP_URL` = `https://aiforceo.app`
+- [x] `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` set
+- [x] `ANTHROPIC_MODEL` = `claude-sonnet-4-6`
+- [x] All 5 `STRIPE_PRICE_*` vars set
+- [x] Encrypted secrets set: `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
   - [ ] `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_GROWTH`, `STRIPE_PRICE_SCALE`, `STRIPE_PRICE_SETUP`, `STRIPE_PRICE_TOPUP`
 
 #### 1.2.3 Domain configuration
