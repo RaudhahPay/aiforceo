@@ -5,6 +5,7 @@ import Link from "next/link";
 import { updateProfile, updateBriefPrefs, deleteMemory } from "@/server/actions/settings";
 import { createPortalSession, createTopupCheckoutSession } from "@/server/actions/billing";
 import { inviteTeamMember, revokeInvite } from "@/server/actions/invites";
+import { setLocale } from "@/server/actions/locale";
 import type { AgentMemory, MemoryCategory } from "@/lib/memory";
 
 /* ─── CONSTANTS ─────────────────────────────────────────────── */
@@ -785,7 +786,7 @@ export function SettingsClient({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "profile" | "voice" | "financials" | "usage" | "billing" | "team" | "notifications" | "memory"
+    "profile" | "voice" | "financials" | "usage" | "billing" | "team" | "notifications" | "memory" | "language"
   >("profile");
 
   // AI Memory state
@@ -856,6 +857,7 @@ export function SettingsClient({
     { key: "team",          label: "Team" },
     { key: "notifications", label: "Notifications" },
     { key: "memory",        label: "AI Memory" },
+    { key: "language",      label: "Language" },
   ];
 
   const tabStyle = (t: typeof activeTab): React.CSSProperties => ({
@@ -1345,6 +1347,45 @@ export function SettingsClient({
 
           <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
             {memories.length} memor{memories.length === 1 ? "y" : "ies"} stored · max 150 per workspace
+          </p>
+        </div>
+      )}
+
+      {/* ── Language tab ── */}
+      {activeTab === "language" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 480 }}>
+          <div>
+            <h2 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700 }}>Language</h2>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
+              Choose the language for the Boardroom AI interface.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { code: "en", label: "English", native: "English" },
+              { code: "ms", label: "Bahasa Malaysia", native: "Bahasa Malaysia" },
+            ].map((lang) => (
+              <form key={lang.code} action={setLocale.bind(null, lang.code as "en" | "ms")}>
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%", textAlign: "left", padding: "14px 18px",
+                    borderRadius: 12, border: "1px solid var(--line)",
+                    background: "var(--soft)", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 14,
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{lang.code === "en" ? "🇬🇧" : "🇲🇾"}</span>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{lang.label}</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>{lang.native}</p>
+                  </div>
+                </button>
+              </form>
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
+            More languages coming soon — Español, العربية, 中文.
           </p>
         </div>
       )}

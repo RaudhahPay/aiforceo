@@ -165,18 +165,20 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (!customAgentSystemPrompt) return makeJson({ error: "Custom agent not found." }, 404);
   }
 
-  const system = customAgentSystemPrompt
+  // For custom agents: build the system prompt inline from their stored prompt.
+  // For built-in roles: use the standard buildSystemPrompt() with full context.
+  const finalSystem = customAgentSystemPrompt
     ? [
         customAgentSystemPrompt,
         `\n\n== Business profile ==\nName: ${workspace.name}`,
         profile?.industry ? `Industry: ${profile.industry}` : "",
         voice?.voice_summary ? `\n\n== Brand voice ==\n${voice.voice_summary}` : "",
-        memories.length > 0 ? `\n\n== What I remember about this business ==\n${memories.map(m => `- [${m.category}] ${m.content}`).join("\n")}` : "",
+        memories.length > 0
+          ? `\n\n== What I remember about this business ==\n${memories.map(m => `- [${m.category}] ${m.content}`).join("\n")}`
+          : "",
         connectorData ? `\n\n${connectorData}` : "",
       ].filter(Boolean).join("\n")
-    : null;
-
-  const finalSystem = system ?? buildSystemPrompt(role as AgentRole, {
+    : buildSystemPrompt(role as AgentRole, {
     businessName: workspace.name,
     industry: profile?.industry ?? undefined,
     size: profile?.size ?? undefined,

@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function AcceptInvitePage() {
+// Force dynamic rendering — page reads URL search params
+export const dynamic = "force-dynamic";
+
+function AcceptInviteContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -90,5 +93,19 @@ export default function AcceptInvitePage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen grid place-items-center px-6">
+        <div className="card text-center" style={{ width: "100%", maxWidth: 400, padding: 40 }}>
+          <p className="text-lg font-semibold">Loading…</p>
+        </div>
+      </main>
+    }>
+      <AcceptInviteContent />
+    </Suspense>
   );
 }
