@@ -2164,6 +2164,8 @@ export function DashboardClient({
   connectedSources,
   groupKpis = [],
   todayBriefContent = null,
+  ownerInitial,
+  ownerName,
 }: {
   workspaceId: string;
   workspaceName: string;
@@ -2174,6 +2176,8 @@ export function DashboardClient({
   connectedSources: number;
   groupKpis?: GroupEntry[];
   todayBriefContent?: string | null;
+  ownerInitial?: string;
+  ownerName?: string;
 }) {
   const [view, setView] = useState<
     "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
@@ -2449,6 +2453,8 @@ export function DashboardClient({
         <OfficeView
           agentStats={agentStats}
           workspaceName={workspaceName}
+          ownerInitial={ownerInitial}
+          ownerName={ownerName}
         />
       )}
 

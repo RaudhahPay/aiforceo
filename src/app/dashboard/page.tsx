@@ -147,6 +147,8 @@ export default async function DashboardPage() {
         connectedSources={(connectors ?? []).length}
         groupKpis={groupKpis}
         todayBriefContent={todayBriefContent}
+        ownerInitial={(ctx.user.email ?? "B")[0].toUpperCase()}
+        ownerName={ctx.user.email?.split("@")[0] ?? "Boss"}
       />
     </div>
   );

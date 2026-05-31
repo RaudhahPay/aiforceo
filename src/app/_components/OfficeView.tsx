@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { AGENTS, type AgentRole } from "@/lib/prompts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const ROLES: AgentRole[] = ["aria", "cmo", "coo", "cfo", "ceo", "cto"];
 
@@ -17,23 +17,208 @@ type AgentStat = {
 type Props = {
   agentStats: Record<AgentRole, AgentStat>;
   workspaceName: string;
+  ownerInitial?: string;       // first letter of owner's name/email
+  ownerName?: string;          // displayed on hover
   activeAgentTasks?: Record<string, string>;
 };
 
-// Each agent's desk position on the office background image (percentage-based)
-// Mapped to the pixel-art office layout
-const DESK_POSITIONS: Record<AgentRole, { top: string; left: string; label: string }> = {
-  aria:  { top: "72%",  left: "38%",  label: "Chief of Staff" },     // Bottom center reception desk
-  cmo:   { top: "18%",  left: "12%",  label: "Marketing" },           // Top-left open desks
-  coo:   { top: "32%",  left: "12%",  label: "Operations" },          // Left open desks row 2
-  cfo:   { top: "52%",  left: "72%",  label: "Finance" },             // Right side desks
-  ceo:   { top: "40%",  left: "42%",  label: "Strategy" },            // Center conference room area
-  cto:   { top: "18%",  left: "78%",  label: "Technology" },           // Top-right focus room
+// Each agent's home desk position + wander radius (percentage-based on the image)
+const DESK_POSITIONS: Record<AgentRole, { top: number; left: number; wanderRadius: number }> = {
+  aria:  { top: 72, left: 38, wanderRadius: 4 },      // Reception area
+  cmo:   { top: 18, left: 12, wanderRadius: 5 },      // Top-left open desks
+  coo:   { top: 32, left: 15, wanderRadius: 5 },      // Left open desks row 2
+  cfo:   { top: 52, left: 72, wanderRadius: 4 },      // Right side desks
+  ceo:   { top: 40, left: 42, wanderRadius: 3 },      // Center conference room
+  cto:   { top: 20, left: 78, wanderRadius: 4 },      // Top-right focus room
 };
 
-export function OfficeView({ agentStats, workspaceName, activeAgentTasks = {} }: Props) {
+// The Boss position (top of the conference room / corner office)
+const BOSS_POSITION = { top: 55, left: 42 };
+
+/** Generate a random offset within the wander radius */
+function randomOffset(radius: number): { x: number; y: number } {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = Math.random() * radius;
+  return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
+}
+
+/** Agent avatar that wanders around its desk */
+function WanderingAgent({
+  role,
+  stat,
+  isActive,
+  activeTask,
+  isHovered,
+  onHover,
+  onLeave,
+}: {
+  role: AgentRole;
+  stat: AgentStat;
+  isActive: boolean;
+  activeTask?: string;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}) {
+  const pos = DESK_POSITIONS[role];
+  const agent = AGENTS[role];
+  const grad = `linear-gradient(135deg, ${agent.gradient[0]}, ${agent.gradient[1]})`;
+
+  // Wandering animation — move to a new random position every 3-5 seconds
+  const [wanderTarget, setWanderTarget] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isActive) {
+        setWanderTarget(randomOffset(pos.wanderRadius));
+      } else {
+        setWanderTarget({ x: 0, y: 0 }); // Stay at desk when working
+      }
+    }, 3000 + Math.random() * 2000);
+
+    return () => clearInterval(interval);
+  }, [isActive, pos.wanderRadius]);
+
+  return (
+    <Link href={`/agent/${role}`} style={{ textDecoration: "none" }}>
+      <motion.div
+        onHoverStart={onHover}
+        onHoverEnd={onLeave}
+        animate={{
+          top: `${pos.top + wanderTarget.y}%`,
+          left: `${pos.left + wanderTarget.x}%`,
+        }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          transform: "translate(-50%, -50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          cursor: "pointer",
+          zIndex: isHovered ? 30 : 10,
+        }}
+      >
+        {/* Tooltip bubble */}
+        <AnimatePresence>
+          {(isActive || isHovered) && (
+            <motion.div
+              initial={{ opacity: 0, y: 6, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.85 }}
+              style={{
+                background: isActive ? agent.gradient[0] : "rgba(0,0,0,0.85)",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "6px 12px",
+                borderRadius: 10,
+                marginBottom: 6,
+                whiteSpace: "nowrap",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+                textAlign: "center",
+                maxWidth: 180,
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {isActive
+                ? `🔄 ${activeTask}`
+                : (
+                  <>
+                    <strong>{agent.name}</strong> · {agent.title.replace("AI ", "")}
+                    <br />
+                    <span style={{ fontSize: 9, opacity: 0.7 }}>
+                      {stat?.msgCountMtd ?? 0} msgs this month
+                      {stat?.lastActive ? ` · Active ${new Date(stat.lastActive).toLocaleDateString("en-MY", { day: "numeric", month: "short" })}` : ""}
+                    </span>
+                  </>
+                )
+              }
+              {/* Tooltip arrow */}
+              <div style={{
+                position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)",
+                width: 8, height: 8, background: isActive ? agent.gradient[0] : "rgba(0,0,0,0.85)",
+                rotate: "45deg",
+              }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Agent avatar — larger with high-contrast border */}
+        <motion.div
+          animate={isActive
+            ? { scale: [1, 1.12, 1], boxShadow: [`0 0 0 0 ${agent.gradient[0]}80`, `0 0 0 14px ${agent.gradient[0]}00`] }
+            : {}
+          }
+          transition={isActive ? { duration: 1.2, repeat: Infinity } : {}}
+          whileHover={{ scale: 1.2 }}
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 14,
+            background: grad,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+            fontSize: 20,
+            color: role === "ceo" ? "#1E2761" : "#fff",
+            border: "3px solid rgba(255,255,255,0.9)",
+            boxShadow: isActive
+              ? `0 0 24px ${agent.gradient[0]}80, 0 4px 12px rgba(0,0,0,0.4)`
+              : "0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.2)",
+          }}
+        >
+          {agent.name[0]}
+        </motion.div>
+
+        {/* Name tag */}
+        <div style={{
+          marginTop: 4,
+          fontSize: 10,
+          fontWeight: 800,
+          color: "#fff",
+          textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)",
+          textAlign: "center",
+          letterSpacing: "0.02em",
+          background: "rgba(0,0,0,0.45)",
+          padding: "1px 8px",
+          borderRadius: 6,
+        }}>
+          {agent.name}
+        </div>
+
+        {/* Typing dots when active */}
+        {isActive && (
+          <div style={{ display: "flex", gap: 3, marginTop: 3 }}>
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.15 }}
+                style={{ width: 5, height: 5, borderRadius: "50%", background: "#fff" }}
+              />
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </Link>
+  );
+}
+
+export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName, activeAgentTasks = {} }: Props) {
   const [hoveredAgent, setHoveredAgent] = useState<AgentRole | null>(null);
+  const [hoveredBoss, setHoveredBoss] = useState(false);
   const activeCount = Object.keys(activeAgentTasks).length;
+
+  // Boss wander
+  const [bossWander, setBossWander] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBossWander(randomOffset(3));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div style={{ width: "100%", padding: "16px 0" }}>
@@ -41,20 +226,20 @@ export function OfficeView({ agentStats, workspaceName, activeAgentTasks = {} }:
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ textAlign: "center", marginBottom: 16 }}
+        style={{ textAlign: "center", marginBottom: 12 }}
       >
         <p style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 2px" }}>
           🏢 {workspaceName} HQ
         </p>
         <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
           {activeCount > 0
-            ? `${activeCount} executive${activeCount > 1 ? "s" : ""} working • Click any desk to chat`
-            : "All executives standing by • Click any desk to chat"
+            ? `${activeCount} executive${activeCount > 1 ? "s" : ""} working • Click any agent to chat`
+            : "All executives on standby • Click any agent to chat"
           }
         </p>
       </motion.div>
 
-      {/* Office map container */}
+      {/* Office map */}
       <div style={{
         position: "relative",
         width: "100%",
@@ -63,9 +248,9 @@ export function OfficeView({ agentStats, workspaceName, activeAgentTasks = {} }:
         borderRadius: 16,
         overflow: "hidden",
         border: "2px solid var(--line)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
       }}>
-        {/* Background image */}
+        {/* Background */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/office-bg.png"
@@ -73,146 +258,110 @@ export function OfficeView({ agentStats, workspaceName, activeAgentTasks = {} }:
           style={{ width: "100%", height: "auto", display: "block" }}
         />
 
-        {/* Agent hotspots overlaid on the image */}
-        {ROLES.map((role) => {
-          const pos = DESK_POSITIONS[role];
-          const agent = AGENTS[role];
-          const stat = agentStats[role];
-          const isActive = !!activeAgentTasks[role];
-          const isHovered = hoveredAgent === role;
-          const grad = `linear-gradient(135deg, ${agent.gradient[0]}, ${agent.gradient[1]})`;
+        {/* Agent hotspots */}
+        {ROLES.map((role) => (
+          <WanderingAgent
+            key={role}
+            role={role}
+            stat={agentStats[role]}
+            isActive={!!activeAgentTasks[role]}
+            activeTask={activeAgentTasks[role]}
+            isHovered={hoveredAgent === role}
+            onHover={() => setHoveredAgent(role)}
+            onLeave={() => setHoveredAgent(null)}
+          />
+        ))}
 
-          return (
-            <Link
-              key={role}
-              href={`/agent/${role}`}
-              style={{ textDecoration: "none" }}
-            >
-              <motion.div
-                onHoverStart={() => setHoveredAgent(role)}
-                onHoverEnd={() => setHoveredAgent(null)}
-                style={{
-                  position: "absolute",
-                  top: pos.top,
-                  left: pos.left,
-                  transform: "translate(-50%, -50%)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  zIndex: isHovered ? 20 : 10,
-                }}
-              >
-                {/* Activity bubble */}
-                <AnimatePresence>
-                  {(isActive || isHovered) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.8 }}
-                      style={{
-                        background: isActive ? "var(--accent)" : "var(--panel)",
-                        border: isActive ? "none" : "1px solid var(--line)",
-                        color: isActive ? "#fff" : "var(--ink)",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        padding: "4px 10px",
-                        borderRadius: 12,
-                        marginBottom: 4,
-                        whiteSpace: "nowrap",
-                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                        textAlign: "center",
-                        maxWidth: 160,
-                      }}
-                    >
-                      {isActive
-                        ? activeAgentTasks[role]
-                        : (
-                          <>
-                            <strong>{agent.name}</strong> · {agent.title.replace("AI ", "")}
-                            <br />
-                            <span style={{ fontSize: 9, opacity: 0.8 }}>
-                              {stat?.msgCountMtd ?? 0} msgs this month
-                            </span>
-                          </>
-                        )
-                      }
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Agent avatar */}
+        {/* The Boss (logged-in user) */}
+        {ownerInitial && (
+          <motion.div
+            onHoverStart={() => setHoveredBoss(true)}
+            onHoverEnd={() => setHoveredBoss(false)}
+            animate={{
+              top: `${BOSS_POSITION.top + bossWander.y}%`,
+              left: `${BOSS_POSITION.left + bossWander.x}%`,
+            }}
+            transition={{ duration: 2.5, ease: "easeInOut" }}
+            style={{
+              position: "absolute",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              zIndex: hoveredBoss ? 30 : 15,
+            }}
+          >
+            {/* Boss tooltip */}
+            <AnimatePresence>
+              {hoveredBoss && (
                 <motion.div
-                  animate={isActive
-                    ? { scale: [1, 1.15, 1], boxShadow: [`0 0 0 0 ${agent.gradient[0]}60`, `0 0 0 12px ${agent.gradient[0]}00`] }
-                    : { y: [0, -3, 0] }
-                  }
-                  transition={isActive
-                    ? { duration: 1, repeat: Infinity, ease: "easeInOut" }
-                    : { duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: ROLES.indexOf(role) * 0.3 }
-                  }
-                  whileHover={{ scale: 1.25 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.85 }}
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: grad,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    fontSize: 16,
-                    color: role === "ceo" ? "#1E2761" : "#fff",
-                    boxShadow: isActive
-                      ? `0 0 20px ${agent.gradient[0]}60`
-                      : "0 2px 8px rgba(0,0,0,0.3)",
-                    border: isHovered ? "2px solid #fff" : "2px solid transparent",
+                    background: "rgba(0,0,0,0.85)",
+                    color: "#fff",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: "6px 12px",
+                    borderRadius: 10,
+                    marginBottom: 6,
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
                   }}
                 >
-                  {agent.name[0]}
+                  👑 {ownerName ?? "The Boss"} · Online
                 </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Name label */}
-                <div style={{
-                  marginTop: 3,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: "#fff",
-                  textShadow: "0 1px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
-                  textAlign: "center",
-                  lineHeight: 1.2,
-                }}>
-                  {agent.name}
-                </div>
+            {/* Boss avatar */}
+            <motion.div
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              whileHover={{ scale: 1.15 }}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #FFD700, #FFA500)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 800,
+                fontSize: 18,
+                color: "#1E2761",
+                border: "3px solid rgba(255,255,255,0.95)",
+                boxShadow: "0 0 20px rgba(255,215,0,0.4), 0 4px 12px rgba(0,0,0,0.4)",
+                cursor: "default",
+              }}
+            >
+              {ownerInitial}
+            </motion.div>
 
-                {/* Typing indicator when active */}
-                {isActive && (
-                  <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
-                    {[0, 1, 2].map((i) => (
-                      <motion.span
-                        key={i}
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
-                        style={{
-                          width: 4, height: 4, borderRadius: "50%",
-                          background: "#fff",
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
+            {/* Boss label */}
+            <div style={{
+              marginTop: 3,
+              fontSize: 9,
+              fontWeight: 800,
+              color: "#FFD700",
+              textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+              background: "rgba(0,0,0,0.5)",
+              padding: "1px 8px",
+              borderRadius: 6,
+            }}>
+              👑 BOSS
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Legend */}
       <div style={{
         display: "flex",
         justifyContent: "center",
-        gap: 16,
-        marginTop: 16,
+        gap: 14,
+        marginTop: 14,
         flexWrap: "wrap",
       }}>
         {ROLES.map((role) => {
@@ -223,18 +372,21 @@ export function OfficeView({ agentStats, workspaceName, activeAgentTasks = {} }:
               key={role}
               href={`/agent/${role}`}
               style={{
-                display: "flex", alignItems: "center", gap: 6,
+                display: "flex", alignItems: "center", gap: 5,
                 fontSize: 11, color: "var(--muted)", textDecoration: "none",
+                padding: "3px 8px", borderRadius: 6,
+                background: "var(--panel)",
+                border: "1px solid var(--line)",
               }}
             >
               <span style={{
-                width: 8, height: 8, borderRadius: 4,
+                width: 10, height: 10, borderRadius: 4,
                 background: `linear-gradient(135deg, ${agent.gradient[0]}, ${agent.gradient[1]})`,
-                display: "inline-block",
+                border: "1px solid rgba(255,255,255,0.3)",
               }} />
-              {agent.name}
-              <span style={{ fontSize: 10, opacity: 0.6 }}>
-                ({stat?.msgCountMtd ?? 0})
+              <span style={{ fontWeight: 600 }}>{agent.name}</span>
+              <span style={{ fontSize: 10, opacity: 0.5 }}>
+                {stat?.msgCountMtd ?? 0}
               </span>
             </Link>
           );
