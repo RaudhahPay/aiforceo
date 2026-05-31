@@ -13,6 +13,7 @@ import {
 } from "@/lib/export";
 import { newConversation } from "@/server/actions/workspaces";
 import { toggleStarMessage } from "@/server/actions/search";
+import { mergeKPIUpdate } from "@/server/actions/kpi-update";
 import { useAttachments, ACCEPT_STRING, type Attachment } from "@/hooks/useAttachments";
 
 type MsgAttachment = Pick<Attachment, "id" | "name" | "mimeType" | "preview"> & { url?: string };
@@ -825,6 +826,48 @@ export function ChatClient({
                       />
                     )}
                   </div>
+                  {/* KPI Update confirmation — when Aria proposes dashboard updates */}
+                  {isDone && m.content.includes('"type":"kpi_update"') && (() => {
+                    const match = m.content.match(/```(?:json)?\s*(\{[\s\S]*?"type"\s*:\s*"kpi_update"[\s\S]*?\})\s*```/);
+                    if (!match) return null;
+                    const kpiKey = `kpi_${i}`;
+                    const alreadyApplied = feedbackSent[i] === "up"; // reuse feedbackSent as applied tracker
+                    return (
+                      <div style={{
+                        marginTop: 8, padding: "12px 16px", borderRadius: 12,
+                        background: alreadyApplied ? "rgba(63,185,132,0.1)" : "rgba(24,119,242,0.1)",
+                        border: `1px solid ${alreadyApplied ? "rgba(63,185,132,0.3)" : "rgba(24,119,242,0.3)"}`,
+                        display: "flex", alignItems: "center", gap: 12,
+                      }}>
+                        <span style={{ fontSize: 20 }}>{alreadyApplied ? "✅" : "📊"}</span>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: alreadyApplied ? "#3FB984" : "var(--accent)" }}>
+                            {alreadyApplied ? "Dashboard updated!" : "Aria wants to update your dashboard KPIs"}
+                          </p>
+                          <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>
+                            {alreadyApplied ? "The numbers are now live on your dashboard." : "Review the numbers above, then confirm to update."}
+                          </p>
+                        </div>
+                        {!alreadyApplied && (
+                          <button
+                            className="btn text-sm"
+                            onClick={async () => {
+                              try {
+                                const parsed = JSON.parse(match[1]!) as { updates: Record<string, unknown> };
+                                const res = await mergeKPIUpdate(parsed.updates);
+                                if (res.ok) {
+                                  setFeedbackSent((prev) => ({ ...prev, [i]: "up" }));
+                                }
+                              } catch { /* silent */ }
+                            }}
+                          >
+                            ✓ Update Dashboard
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* Export + feedback — only on complete, non-error assistant messages */}
                   {isDone && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

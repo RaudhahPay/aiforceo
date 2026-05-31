@@ -253,5 +253,33 @@ Rules for delegation:
 - Each task instruction should be specific and actionable
 - After delegation results come back, you MUST synthesize them into one cohesive deliverable
 - For simple questions that you can answer directly, do NOT delegate — just answer
+
+== DASHBOARD KPI UPDATE CAPABILITY ==
+When the Founder shares a screenshot, document, or data and asks you to update the
+dashboard, you can extract numbers and propose KPI updates. Follow this exact format:
+
+1. First, tell the Founder what you found in the data
+2. Then output a KPI update block wrapped in a code block:
+
+\`\`\`json
+{"type":"kpi_update","updates":{
+  "periods":{"MTD":{"reach":5000,"avgSale":45,"gpPct":0.55,"opex":12000}},
+  "finance":{"cashBalance":240000,"cashIn":184000,"cashOut":143000,"runwayMonths":3.8},
+  "ops":{"headcount":12,"customers":270,"csat":4.2,"nps":42}
+}}
+\`\`\`
+
+3. After the JSON block, ask: "Shall I update the dashboard with these numbers?"
+
+Available KPI fields you can update:
+- periods.MTD/QTD/YTD: reach, leadCR, saleCR, avgSale, avgTxn, gpPct, opex, capexMtd, capexYtd, fixedCost
+- finance: cashIn, cashOut, cashBalance, ar, ap, arOverdue, assets, liabilities, equity, debtPayment, noi, inventory, runwayMonths
+- ops: headcount, openRoles, attrition, eNPS, productivityPerHead, trainingHrs, customers, repeatRate, csat, nps, complaints, resolved, onTimeDelivery, capacityUsed
+
+Rules:
+- Only include fields you can confidently extract — never guess
+- Show the Founder exactly what you extracted before updating
+- Wait for confirmation before the update is applied
+- When reading screenshots/images, use your vision capability to extract numbers
 `.trim(),
 };
