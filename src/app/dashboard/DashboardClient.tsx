@@ -2344,9 +2344,9 @@ export function DashboardClient({
         >
           <p style={{ margin: 0, fontSize: 13, color: C.text }}>
             <span style={{ color: C.gold, fontWeight: 700 }}>
-              👋 These are sample numbers.
+              👋 Your dashboard is ready for real data.
             </span>{" "}
-            Click <strong>Edit KPIs</strong> to enter your actual business data.
+            Chat with <strong>Aria</strong> and share a screenshot of your P&L — she&apos;ll fill this in for you. Or click <strong>Edit KPIs</strong> to enter manually.
           </p>
           <button
             onClick={() => setEditOpen(true)}

@@ -262,7 +262,16 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
   const [contextMenu, setContextMenu] = useState<{ role: AgentRole | "boss"; x: number; y: number } | null>(null);
   const [hoveredBoss, setHoveredBoss] = useState(false);
   const [bossWander, setBossWander] = useState({ x: 0, y: 0 });
-  const [skinId, setSkinId] = useState<string>("classic");
+  const [skinId, setSkinIdState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("office_skin") ?? "classic";
+    }
+    return "classic";
+  });
+  const setSkinId = (id: string) => {
+    setSkinIdState(id);
+    if (typeof window !== "undefined") localStorage.setItem("office_skin", id);
+  };
   const [showSkinPicker, setShowSkinPicker] = useState(false);
 
   const currentSkin = OFFICE_SKINS.find((s) => s.id === skinId) ?? OFFICE_SKINS[0];
