@@ -2181,7 +2181,7 @@ export function DashboardClient({
 }) {
   const [view, setView] = useState<
     "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
-  >("CEO");
+  >("OFFICE");
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
   const [kpi, setKpi] = useState<WorkspaceKPI>(defaultKPI);
   const [editOpen, setEditOpen] = useState(false);
