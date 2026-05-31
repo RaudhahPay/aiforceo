@@ -14,8 +14,20 @@ import { buildSystemPrompt, type AgentRole } from "@/lib/prompts";
 import { getRemainingTokens, recordUsage } from "@/lib/credits";
 import { buildSheetsContext, fetchSheetByUrl } from "@/lib/google-sheets";
 import { loadMemories, extractAndSaveMemories } from "@/lib/memory";
+import { uploadAttachmentsToStorage } from "@/lib/attachments";
+import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 
 const BUILTIN_ROLES = ["cmo", "coo", "cfo", "ceo", "cto", "aria"] as const;
+
+// ── Attachment schema ───────────────────────────────────────────────────────
+const AttachmentSchema = z.object({
+  name:     z.string().max(255),
+  mimeType: z.string().max(100),
+  size:     z.number().int().min(1).max(10 * 1024 * 1024), // 10 MB
+  base64:   z.string().max(15_000_000),                     // ~10 MB base64
+});
+
+type ReqAttachment = z.infer<typeof AttachmentSchema>;
 
 const RequestSchema = z.object({
   conversationId: z.string().uuid(),
@@ -24,13 +36,46 @@ const RequestSchema = z.object({
   messages: z
     .array(
       z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(8000),
+        role:        z.enum(["user", "assistant"]),
+        content:     z.string().min(0).max(8000), // 0 allowed when attachments are present
+        attachments: z.array(AttachmentSchema).max(5).optional(),
       }),
     )
     .min(1)
     .max(40),
 });
+
+// ── Build Anthropic content blocks ─────────────────────────────────────────
+function buildContentBlocks(
+  text: string,
+  attachments: ReqAttachment[] | undefined,
+): MessageParam["content"] {
+  if (!attachments?.length) return text || " ";
+
+  const blocks: NonNullable<MessageParam["content"]> = [];
+
+  for (const att of attachments) {
+    if (att.mimeType.startsWith("image/")) {
+      const mediaType = att.mimeType as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+      blocks.push({
+        type:   "image",
+        source: { type: "base64", media_type: mediaType, data: att.base64 },
+      });
+    } else if (att.mimeType === "application/pdf") {
+      blocks.push({
+        type:   "document",
+        source: { type: "base64", media_type: "application/pdf", data: att.base64 },
+      });
+    } else {
+      // TXT / CSV / DOCX → decode as UTF-8 text and inject as labelled text block
+      const decoded = Buffer.from(att.base64, "base64").toString("utf-8").slice(0, 50_000);
+      blocks.push({ type: "text", text: `[File: ${att.name}]\n${decoded}` });
+    }
+  }
+
+  if (text.trim()) blocks.push({ type: "text", text });
+  return blocks;
+}
 
 function makeJson(body: object, status: number) {
   return new Response(JSON.stringify(body), {
@@ -198,10 +243,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   // 7. Persist the user message before streaming
   await admin.from("messages").insert({
     conversation_id: conversationId,
-    workspace_id: workspace.id,
-    role: "user",
-    content: lastUser.content,
-    model: ANTHROPIC_MODEL,
+    workspace_id:    workspace.id,
+    role:            "user",
+    content:         lastUser.content,
+    model:           ANTHROPIC_MODEL,
+    // Store attachment metadata (without base64) — URLs backfilled by background upload
+    attachments: (lastUser.attachments ?? []).map(({ name, mimeType, size }) => ({
+      name, mimeType, size, url: "",
+    })),
   });
 
   // 8. Stream from Anthropic, persist assistant message + usage when done
@@ -216,10 +265,16 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       try {
         const anthropicStream = anthropic.messages.stream({
-          model: ANTHROPIC_MODEL,
+          model:      ANTHROPIC_MODEL,
           max_tokens: 1500,
-          system: finalSystem,
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          system:     finalSystem,
+          // Last user message uses content blocks (text + image/doc); history is plain strings
+          messages: messages.map((m, idx) => ({
+            role:    m.role,
+            content: (idx === messages.length - 1 && m.role === "user")
+              ? buildContentBlocks(m.content, m.attachments)
+              : (m.content || " "),
+          })),
         });
 
         for await (const event of anthropicStream) {
@@ -265,11 +320,20 @@ export async function POST(req: NextRequest): Promise<Response> {
           messageId: aMsg?.id,
         });
 
+        // Upload attachments to Supabase Storage — fire-and-forget
+        if (lastUser.attachments?.length && aMsg?.id) {
+          void uploadAttachmentsToStorage({
+            workspaceId: workspace.id,
+            messageId:   aMsg.id,
+            attachments: lastUser.attachments,
+          });
+        }
+
         // Extract and persist memories — fire-and-forget, never blocks the stream
         void extractAndSaveMemories({
-          workspaceId: workspace.id,
-          agentRole: role,
-          userMessage: lastUser.content,
+          workspaceId:      workspace.id,
+          agentRole:        role,
+          userMessage:      lastUser.content,
           assistantMessage: fullText,
         });
 

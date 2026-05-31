@@ -13,8 +13,15 @@ import {
 } from "@/lib/export";
 import { newConversation } from "@/server/actions/workspaces";
 import { toggleStarMessage } from "@/server/actions/search";
+import { useAttachments, ACCEPT_STRING, type Attachment } from "@/hooks/useAttachments";
 
-type Msg = { role: "user" | "assistant"; content: string; id?: string };
+type MsgAttachment = Pick<Attachment, "id" | "name" | "mimeType" | "preview"> & { url?: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  id?: string;
+  attachments?: MsgAttachment[];
+};
 
 const QUICK_PROMPTS: Record<AgentRole, string[]> = {
   cmo: [
@@ -335,6 +342,16 @@ export function ChatClient({
   const [showHistory, setShowHistory] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState<Record<number, "up" | "down">>({});
   const [starredMsgs, setStarredMsgs] = useState<Record<number, boolean>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    attachments: pendingAttachments,
+    isProcessing:  attachmentProcessing,
+    error:         attachmentError,
+    addFiles,
+    removeAttachment,
+    clearAttachments,
+    clearError: clearAttachmentError,
+  } = useAttachments();
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Reset state when conversation switches (workspace change, bfcache restore)
@@ -407,11 +424,25 @@ export function ChatClient({
 
   async function send(prompt?: string) {
     const text = (prompt ?? input).trim();
-    if (!text || pending) return;
+    // Allow send if there's text OR attachments
+    if ((!text && !pendingAttachments.length) || pending) return;
     setInput("");
+    clearAttachmentError();
+
+    // Snapshot attachments and clear the picker immediately
+    const sentAttachments = pendingAttachments.map(({ id, name, mimeType, preview, base64, size }) =>
+      ({ id, name, mimeType, preview, base64, size })
+    );
+    clearAttachments();
+
     setPending(true);
 
-    const next: Msg[] = [...messages, { role: "user", content: text }];
+    const userMsg: Msg = {
+      role: "user",
+      content: text,
+      attachments: sentAttachments.map(({ id, name, mimeType, preview }) => ({ id, name, mimeType, preview })),
+    };
+    const next: Msg[] = [...messages, userMsg];
     const assistantIndex = next.length;
     setMessages([...next, { role: "assistant", content: "" }]);
     setStreamingIndex(assistantIndex);
@@ -424,7 +455,14 @@ export function ChatClient({
         body: JSON.stringify({
           conversationId,
           role,
-          messages: next.map(({ role, content }) => ({ role, content })),
+          messages: next.map(({ role, content, attachments }, idx) => ({
+            role,
+            content,
+            // Only send base64 for the last message (current turn)
+            ...(idx === next.length - 1 && attachments?.length
+              ? { attachments: sentAttachments.map(({ name, mimeType, size, base64 }) => ({ name, mimeType, size, base64 })) }
+              : {}),
+          })),
         }),
       });
 
@@ -753,9 +791,33 @@ export function ChatClient({
                     }}
                   >
                     {m.role === "user" ? (
-                      <span style={{ whiteSpace: "pre-wrap" }}>
-                        {m.content}
-                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {/* Attachment previews in user bubble */}
+                        {m.attachments && m.attachments.length > 0 && (
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {m.attachments.map((att) => (
+                              <div key={att.id} style={{ borderRadius: 8, overflow: "hidden", border: "1px solid rgba(0,0,0,0.2)", background: "rgba(0,0,0,0.15)" }}>
+                                {att.preview ? (
+                                  // eslint-disable-next-line @next/next/no-img-element -- base64 data URL, no network optimisation possible
+                                  <img
+                                    src={att.preview}
+                                    alt={att.name}
+                                    style={{ maxWidth: 200, maxHeight: 160, display: "block", objectFit: "cover" }}
+                                  />
+                                ) : (
+                                  <div style={{ padding: "6px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span style={{ fontSize: 16 }}>{att.mimeType === "application/pdf" ? "📄" : att.mimeType.includes("word") ? "📝" : "📁"}</span>
+                                    <span style={{ fontSize: 11, color: "rgba(14,23,38,0.7)", fontWeight: 600, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.name}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {m.content && (
+                          <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>
+                        )}
+                      </div>
                     ) : (
                       <AssistantContent
                         content={m.content}
@@ -815,13 +877,55 @@ export function ChatClient({
             borderTop: "1px solid #2A3B5E",
           }}
         >
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPT_STRING}
+            style={{ display: "none" }}
+            onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }}
+          />
+
+          {/* Attachment error banner */}
+          {attachmentError && (
+            <div style={{ padding: "6px 14px", background: "rgba(229,84,75,0.1)", border: "1px solid rgba(229,84,75,0.3)", borderRadius: 8, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "#E5544B" }}>⚠ {attachmentError}</span>
+              <button type="button" onClick={clearAttachmentError} style={{ background: "none", border: "none", cursor: "pointer", color: "#E5544B", fontSize: 16, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {/* Pending attachment previews */}
+          {pendingAttachments.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+              {pendingAttachments.map((att) => (
+                <div key={att.id} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid #2A3B5E", background: "#15203A" }}>
+                  {att.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- base64 preview, no network optimisation
+                    <img src={att.preview} alt={att.name} style={{ width: 60, height: 60, objectFit: "cover", display: "block" }} />
+                  ) : (
+                    <div style={{ width: 60, height: 60, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 4 }}>
+                      <span style={{ fontSize: 22 }}>{att.mimeType === "application/pdf" ? "📄" : "📁"}</span>
+                      <span style={{ fontSize: 9, color: "#8597B8", textAlign: "center", lineHeight: 1.2, marginTop: 2, overflow: "hidden", maxWidth: 56, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.name}</span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(att.id)}
+                    style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "none", cursor: "pointer", color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <form
             style={{
               display: "flex",
               gap: 10,
               alignItems: "center",
               borderRadius: 16,
-              padding: "8px 8px 8px 16px",
+              padding: "8px 8px 8px 12px",
               background: "#1C2A47",
               border: `1.5px solid ${pending ? "#D4A017" : "#2A3B5E"}`,
               transition: "border-color 0.2s",
@@ -831,14 +935,31 @@ export function ChatClient({
               void send();
             }}
           >
+            {/* Paperclip / attach button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={pending || attachmentProcessing}
+              title="Attach file or image"
+              style={{
+                background: "none", border: "none", cursor: pending ? "default" : "pointer",
+                color: pendingAttachments.length > 0 ? "#D4A017" : "#8597B8",
+                fontSize: 18, padding: "0 4px", flexShrink: 0,
+                opacity: pending ? 0.4 : 1,
+              }}
+            >📎</button>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
-                pending
-                  ? `${agent.name} is thinking…`
-                  : `Ask ${agent.name} anything…`
+                attachmentProcessing
+                  ? "Reading file…"
+                  : pending
+                    ? `${agent.name} is thinking…`
+                    : pendingAttachments.length > 0
+                      ? "Add a message (optional)…"
+                      : `Ask ${agent.name} anything…`
               }
               style={{
                 flex: 1,
@@ -849,7 +970,7 @@ export function ChatClient({
                 fontSize: 13,
                 color: "#E8EDF6",
               }}
-              disabled={pending}
+              disabled={pending || attachmentProcessing}
             />
             <button
               type="submit"
