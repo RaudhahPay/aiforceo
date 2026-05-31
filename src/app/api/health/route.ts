@@ -3,8 +3,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export const runtime = "edge";
-
+// No edge runtime — runs as Node.js on Cloudflare Workers via OpenNext
 export async function GET(): Promise<NextResponse> {
   try {
     const admin = createSupabaseAdminClient();
