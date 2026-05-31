@@ -15,6 +15,7 @@ import { getRemainingTokens, recordUsage } from "@/lib/credits";
 import { buildSheetsContext, fetchSheetByUrl } from "@/lib/google-sheets";
 import { loadMemories, extractAndSaveMemories } from "@/lib/memory";
 import { uploadAttachmentsToStorage } from "@/lib/attachments";
+import { parseDelegationPlan, executeDelegation, synthesizeDelegation } from "@/lib/delegation";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 
 const BUILTIN_ROLES = ["cmo", "coo", "cfo", "ceo", "cto", "aria"] as const;
@@ -290,6 +291,57 @@ export async function POST(req: NextRequest): Promise<Response> {
             outputTokens = event.usage.output_tokens ?? 0;
           }
         }
+        // ── Check for Aria delegation plan ──
+        // If Aria output a delegation JSON, execute each agent task and synthesize
+        const delegationPlan = (role === "aria") ? parseDelegationPlan(fullText) : null;
+
+        if (delegationPlan && delegationPlan.tasks.length > 0) {
+          // Don't close the stream yet — execute delegation
+          controller.enqueue(encoder.encode(`\n\n[DELEGATION:start:${delegationPlan.tasks.length}]\n`));
+
+          const delegationResult = await executeDelegation({
+            plan: delegationPlan,
+            workspaceId: workspace.id,
+            workspaceName: workspace.name,
+            promptContext: {
+              businessName: workspace.name,
+              industry: profile?.industry ?? undefined,
+              size: profile?.size ?? undefined,
+              primaryOffer: profile?.primary_offer ?? undefined,
+              targetCustomer: profile?.target_customer ?? undefined,
+              challenges: profile?.challenges ?? [],
+              goals90d: profile?.goals_90d ?? undefined,
+              brandVoiceSummary: voice?.voice_summary ?? undefined,
+              toneAttributes: voice?.tone_attributes ?? [],
+              wordsToUse: voice?.words_to_use ?? [],
+              wordsToAvoid: voice?.words_to_avoid ?? [],
+              connectorData,
+              memories,
+            },
+            controller,
+            encoder,
+          });
+
+          // Synthesis — Aria combines all agent outputs
+          controller.enqueue(encoder.encode(`\n\n[DELEGATION:synthesizing]\n\n`));
+
+          const synthesis = await synthesizeDelegation({
+            outputs: delegationResult.outputs,
+            originalRequest: lastUser.content,
+            promptContext: {
+              businessName: workspace.name,
+              memories,
+            },
+          });
+
+          controller.enqueue(encoder.encode(synthesis.text));
+          fullText += `\n\n---\n\n${synthesis.text}`;
+          inputTokens += delegationResult.totalInputTokens + synthesis.inputTokens;
+          outputTokens += delegationResult.totalOutputTokens + synthesis.outputTokens;
+
+          controller.enqueue(encoder.encode(`\n[DELEGATION:done]\n`));
+        }
+
         controller.close();
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Stream error";

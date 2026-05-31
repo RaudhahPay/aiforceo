@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { AgentRole } from "@/lib/prompts";
 import { saveKPIs } from "@/server/actions/dashboard";
 import { switchWorkspace } from "@/server/actions/workspaces";
+import { OfficeView } from "@/app/_components/OfficeView";
 
 /* ─── TIER COLOURS (matches WorkspaceSwitcher) ───────────────── */
 const TIER_COLOR: Record<string, string> = {
@@ -2175,7 +2176,7 @@ export function DashboardClient({
   todayBriefContent?: string | null;
 }) {
   const [view, setView] = useState<
-    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP"
+    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
   >("CEO");
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
   const [kpi, setKpi] = useState<WorkspaceKPI>(defaultKPI);
@@ -2220,6 +2221,7 @@ export function DashboardClient({
     ...(groupKpis.length > 1
       ? ([["GROUP", "🏢 Group View"]] as [string, string][])
       : []),
+    ["OFFICE", "🏢 Office View"],
   ];
 
   return (
@@ -2442,6 +2444,12 @@ export function DashboardClient({
       {view === "COO" && <COOView o={kpi.ops} accent={accent} />}
       {view === "GROUP" && groupKpis.length > 1 && (
         <GroupView entries={groupKpis} activeId={workspaceId} />
+      )}
+      {view === "OFFICE" && (
+        <OfficeView
+          agentStats={agentStats}
+          workspaceName={workspaceName}
+        />
       )}
 
       {/* FOOTER */}

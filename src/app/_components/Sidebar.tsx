@@ -13,6 +13,7 @@ type ActivePage =
   | "settings"
   | "autopilot"
   | "investor-pack"
+  | "documents"
   | "agents"
   | "search"
   | "saved"
@@ -160,6 +161,9 @@ export function Sidebar({
                   {allWorkspaces.length}
                 </span>
               )}
+            </Item>
+            <Item href="/documents" active={active === "documents"} icon="📂">
+              Documents
             </Item>
             <Item href="/connectors" active={active === "connectors"} icon="⊕">
               Connectors
