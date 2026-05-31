@@ -20,10 +20,6 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "routes": [
-    { "pattern": "aiforceo.app", "custom_domain": true },
-    { "pattern": "www.aiforceo.app", "custom_domain": true }
-  ],
   "observability": { "enabled": true },
   "vars": {
     "NEXT_PUBLIC_APP_URL": "https://aiforceo.app",
