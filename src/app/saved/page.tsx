@@ -28,7 +28,7 @@ export default async function SavedPage() {
   return (
     <div className="grid min-h-screen app-grid" style={{ gridTemplateColumns: "240px 1fr" }}>
       <Sidebar
-        active="settings"
+        active="saved"
         remainingTokens={remaining}
         monthlyQuota={quota}
         workspaceName={workspace.name}

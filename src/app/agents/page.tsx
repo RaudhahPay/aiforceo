@@ -22,7 +22,7 @@ export default async function AgentsPage() {
   return (
     <div className="grid min-h-screen app-grid" style={{ gridTemplateColumns: "240px 1fr" }}>
       <Sidebar
-        active="settings"
+        active="agents"
         remainingTokens={remaining}
         monthlyQuota={quota}
         workspaceName={workspace.name}
