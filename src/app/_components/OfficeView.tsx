@@ -144,29 +144,43 @@ function WanderingAgent({
           )}
         </AnimatePresence>
 
-        {/* Agent avatar — larger with high-contrast border */}
+        {/* Black shadow backdrop behind the entire agent */}
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 90,
+          height: 100,
+          borderRadius: 20,
+          background: "rgba(0,0,0,0.75)",
+          filter: "blur(8px)",
+          zIndex: -1,
+        }} />
+
+        {/* Agent avatar — 30% larger with high-contrast border */}
         <motion.div
           animate={isActive
-            ? { scale: [1, 1.12, 1], boxShadow: [`0 0 0 0 ${agent.gradient[0]}80`, `0 0 0 14px ${agent.gradient[0]}00`] }
+            ? { scale: [1, 1.12, 1], boxShadow: [`0 0 0 0 ${agent.gradient[0]}80`, `0 0 0 16px ${agent.gradient[0]}00`] }
             : {}
           }
           transition={isActive ? { duration: 1.2, repeat: Infinity } : {}}
-          whileHover={{ scale: 1.2 }}
+          whileHover={{ scale: 1.15 }}
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 14,
+            width: 68,
+            height: 68,
+            borderRadius: 18,
             background: grad,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontWeight: 800,
-            fontSize: 20,
+            fontSize: 26,
             color: role === "ceo" ? "#1E2761" : "#fff",
-            border: "3px solid rgba(255,255,255,0.9)",
+            border: "3px solid rgba(255,255,255,0.95)",
             boxShadow: isActive
-              ? `0 0 24px ${agent.gradient[0]}80, 0 4px 12px rgba(0,0,0,0.4)`
-              : "0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.2)",
+              ? `0 0 30px ${agent.gradient[0]}80, 0 6px 20px rgba(0,0,0,0.6)`
+              : "0 6px 20px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3)",
           }}
         >
           {agent.name[0]}
@@ -174,16 +188,16 @@ function WanderingAgent({
 
         {/* Name tag */}
         <div style={{
-          marginTop: 4,
-          fontSize: 10,
+          marginTop: 5,
+          fontSize: 11,
           fontWeight: 800,
           color: "#fff",
-          textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)",
           textAlign: "center",
-          letterSpacing: "0.02em",
-          background: "rgba(0,0,0,0.45)",
-          padding: "1px 8px",
-          borderRadius: 6,
+          letterSpacing: "0.03em",
+          background: "rgba(0,0,0,0.7)",
+          padding: "2px 10px",
+          borderRadius: 8,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
         }}>
           {agent.name}
         </div>
@@ -315,24 +329,38 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
               )}
             </AnimatePresence>
 
-            {/* Boss avatar */}
+            {/* Black shadow backdrop behind boss */}
+            <div style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 85,
+              height: 95,
+              borderRadius: 20,
+              background: "rgba(0,0,0,0.75)",
+              filter: "blur(8px)",
+              zIndex: -1,
+            }} />
+
+            {/* Boss avatar — 30% larger */}
             <motion.div
               animate={{ y: [0, -3, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               whileHover={{ scale: 1.15 }}
               style={{
-                width: 48,
-                height: 48,
+                width: 62,
+                height: 62,
                 borderRadius: "50%",
                 background: "linear-gradient(135deg, #FFD700, #FFA500)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: 800,
-                fontSize: 18,
+                fontSize: 24,
                 color: "#1E2761",
                 border: "3px solid rgba(255,255,255,0.95)",
-                boxShadow: "0 0 20px rgba(255,215,0,0.4), 0 4px 12px rgba(0,0,0,0.4)",
+                boxShadow: "0 0 24px rgba(255,215,0,0.5), 0 6px 20px rgba(0,0,0,0.6)",
                 cursor: "default",
               }}
             >
@@ -341,14 +369,14 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
 
             {/* Boss label */}
             <div style={{
-              marginTop: 3,
-              fontSize: 9,
+              marginTop: 5,
+              fontSize: 11,
               fontWeight: 800,
               color: "#FFD700",
-              textShadow: "0 1px 6px rgba(0,0,0,0.9)",
-              background: "rgba(0,0,0,0.5)",
-              padding: "1px 8px",
-              borderRadius: 6,
+              background: "rgba(0,0,0,0.7)",
+              padding: "2px 10px",
+              borderRadius: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
             }}>
               👑 BOSS
             </div>
