@@ -245,6 +245,14 @@ function WanderingAgent({
   );
 }
 
+// ── Office Skins ──────────────────────────────────────────────────
+const OFFICE_SKINS = [
+  { id: "classic",   src: "/office-bg.png",     label: "Classic Office",   icon: "🏢" },
+  { id: "tech",      src: "/office-skin-2.png",  label: "Tech HQ",         icon: "🤖" },
+  { id: "cafe",      src: "/office-skin-3.png",  label: "Café Studio",     icon: "☕" },
+  { id: "campus",    src: "/office-skin-4.png",  label: "Green Campus",    icon: "🌿" },
+] as const;
+
 // ── Main Office View ──────────────────────────────────────────────
 export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName, activeAgentTasks = {} }: Props) {
   const router = useRouter();
@@ -254,7 +262,10 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
   const [contextMenu, setContextMenu] = useState<{ role: AgentRole | "boss"; x: number; y: number } | null>(null);
   const [hoveredBoss, setHoveredBoss] = useState(false);
   const [bossWander, setBossWander] = useState({ x: 0, y: 0 });
+  const [skinId, setSkinId] = useState<string>("classic");
+  const [showSkinPicker, setShowSkinPicker] = useState(false);
 
+  const currentSkin = OFFICE_SKINS.find((s) => s.id === skinId) ?? OFFICE_SKINS[0];
   const activeCount = Object.keys(activeAgentTasks).length;
 
   useEffect(() => {
@@ -290,12 +301,12 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         style={{ textAlign: "center", marginBottom: 12 }}>
         <p style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 2px" }}>
-          🏢 {workspaceName} HQ
+          {currentSkin!.icon} {workspaceName} HQ
         </p>
         <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
           {activeCount > 0
             ? `${activeCount} executive${activeCount > 1 ? "s" : ""} working`
-            : "Click any agent for options • Click the big screen for Dashboard"
+            : "Click any agent for options • Click the big screen for Dashboard • 🎨 Change skin below"
           }
         </p>
       </motion.div>
@@ -308,8 +319,25 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
       }}>
         {/* Background */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/office-bg.png" alt="AI Executive Office"
+        <img src={currentSkin!.src} alt={`${workspaceName} Office`}
           style={{ width: "100%", height: "auto", display: "block" }} />
+
+        {/* Company name overlay — top center of the office */}
+        <div style={{
+          position: "absolute", top: "3%", left: "50%", transform: "translateX(-50%)",
+          background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)",
+          padding: "6px 20px", borderRadius: 10,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          zIndex: 25,
+        }}>
+          <p style={{
+            margin: 0, fontSize: 14, fontWeight: 800, color: "#fff",
+            letterSpacing: "0.08em", textTransform: "uppercase",
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+          }}>
+            {workspaceName}
+          </p>
+        </div>
 
         {/* Big screen in meeting room → Dashboard */}
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
@@ -433,8 +461,8 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
         </AnimatePresence>
       </div>
 
-      {/* Legend */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
+      {/* Legend + Skin Picker */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
         {ROLES.map((role) => {
           const agent = AGENTS[role];
           const stat = agentStats[role];
@@ -455,6 +483,62 @@ export function OfficeView({ agentStats, workspaceName, ownerInitial, ownerName,
             </button>
           );
         })}
+
+        {/* Skin picker toggle */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowSkinPicker((v) => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              fontSize: 11, color: "var(--accent)", fontWeight: 600,
+              padding: "3px 10px", borderRadius: 6, background: "var(--panel)",
+              border: "1px solid var(--accent)", cursor: "pointer",
+            }}
+          >
+            🎨 Change Office
+          </button>
+
+          <AnimatePresence>
+            {showSkinPicker && (
+              <>
+                <div onClick={() => setShowSkinPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 90 }} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", right: 0,
+                    background: "var(--panel)", border: "1px solid var(--line)",
+                    borderRadius: 14, padding: 12, zIndex: 91,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, width: 280,
+                  }}
+                >
+                  <p style={{ gridColumn: "1 / -1", margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Choose Office Style
+                  </p>
+                  {OFFICE_SKINS.map((skin) => (
+                    <button
+                      key={skin.id}
+                      onClick={() => { setSkinId(skin.id); setShowSkinPicker(false); }}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                        padding: 10, borderRadius: 10, cursor: "pointer",
+                        background: skinId === skin.id ? "rgba(24,119,242,0.15)" : "var(--panel2)",
+                        border: skinId === skin.id ? "2px solid var(--accent)" : "1px solid var(--line)",
+                      }}
+                    >
+                      <span style={{ fontSize: 24 }}>{skin.icon}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: skinId === skin.id ? "var(--accent)" : "var(--muted)" }}>
+                        {skin.label}
+                      </span>
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

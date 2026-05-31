@@ -96,6 +96,17 @@ export default async function DashboardPage() {
     todayBriefContent = briefMsg?.content ?? null;
   }
 
+  // Check setup status for WelcomeGuide
+  const [{ data: businessProfile }, { data: brandVoice }, { data: financialSnapshot }] = await Promise.all([
+    admin.from("business_profiles").select("industry").eq("workspace_id", workspace.id).maybeSingle(),
+    admin.from("brand_voice").select("voice_summary").eq("workspace_id", workspace.id).maybeSingle(),
+    admin.from("financial_snapshots").select("id").eq("workspace_id", workspace.id).limit(1).maybeSingle(),
+  ]);
+  const hasBusinessProfile = !!businessProfile?.industry;
+  const hasBrandVoice = !!brandVoice?.voice_summary;
+  const hasFinancials = !!financialSnapshot;
+  const hasConnectors = (connectors ?? []).length > 0;
+
   // Load saved KPIs from DB (falls back to null → client uses localStorage → default)
   // Also load KPIs for all other workspaces so the Group View can compare companies
   const [savedKpis, ...otherKpisRaw] = await Promise.all([
@@ -149,6 +160,10 @@ export default async function DashboardPage() {
         todayBriefContent={todayBriefContent}
         ownerInitial={(ctx.user?.email ?? "B")[0]!.toUpperCase()}
         ownerName={ctx.user?.email?.split("@")[0] ?? "Boss"}
+        hasBusinessProfile={hasBusinessProfile}
+        hasBrandVoice={hasBrandVoice}
+        hasFinancials={hasFinancials}
+        hasConnectors={hasConnectors}
       />
     </div>
   );

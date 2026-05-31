@@ -6,6 +6,7 @@ import type { AgentRole } from "@/lib/prompts";
 import { saveKPIs } from "@/server/actions/dashboard";
 import { switchWorkspace } from "@/server/actions/workspaces";
 import { OfficeView } from "@/app/_components/OfficeView";
+import { WelcomeGuide } from "@/app/_components/WelcomeGuide";
 
 /* ─── TIER COLOURS (matches WorkspaceSwitcher) ───────────────── */
 const TIER_COLOR: Record<string, string> = {
@@ -133,105 +134,35 @@ function compute(r: PeriodRaw): PeriodData {
 
 /* ─── DEFAULT KPI DATA ───────────────────────────────────────── */
 function defaultKPI(): WorkspaceKPI {
+  // Start blank — no seeded data. Aria guides the user to fill these in.
+  const blankPeriod: PeriodRaw = {
+    reach: 0, leadCR: 0, saleCR: 0, avgSale: 0, avgTxn: 0,
+    gpPct: 0, opex: 0, capexMtd: 0, capexYtd: 0, fixedCost: 0,
+  };
   return {
-    periods: {
-      MTD: {
-        reach: 5000,
-        leadCR: 0.18,
-        saleCR: 0.3,
-        avgSale: 500,
-        avgTxn: 1.5,
-        gpPct: 0.55,
-        opex: 35000,
-        capexMtd: 8000,
-        capexYtd: 48000,
-        fixedCost: 25000,
-      },
-      QTD: {
-        reach: 14500,
-        leadCR: 0.18,
-        saleCR: 0.29,
-        avgSale: 490,
-        avgTxn: 1.5,
-        gpPct: 0.54,
-        opex: 103000,
-        capexMtd: 22000,
-        capexYtd: 48000,
-        fixedCost: 75000,
-      },
-      YTD: {
-        reach: 58000,
-        leadCR: 0.18,
-        saleCR: 0.29,
-        avgSale: 485,
-        avgTxn: 1.5,
-        gpPct: 0.54,
-        opex: 410000,
-        capexMtd: 48000,
-        capexYtd: 48000,
-        fixedCost: 300000,
-      },
-    },
+    periods: { MTD: { ...blankPeriod }, QTD: { ...blankPeriod }, YTD: { ...blankPeriod } },
     finance: {
-      cashIn: 95000,
-      cashOut: 78000,
-      cashBalance: 240000,
-      ar: 42000,
-      ap: 28000,
-      arOverdue: 9000,
-      assets: 620000,
-      liabilities: 380000,
-      equity: 240000,
-      debtPayment: 12000,
-      noi: 17000,
-      inventory: 55000,
-      runwayMonths: 3.8,
+      cashIn: 0, cashOut: 0, cashBalance: 0,
+      ar: 0, ap: 0, arOverdue: 0,
+      assets: 0, liabilities: 0, equity: 0,
+      debtPayment: 0, noi: 0, inventory: 0, runwayMonths: 0,
     },
-    marketing: [
-      {
-        name: "Social Media",
-        prospects: 420,
-        cost: 4800,
-        customers: 82,
-        works: true,
-      },
-      {
-        name: "Website / SEO",
-        prospects: 280,
-        cost: 1500,
-        customers: 68,
-        works: true,
-      },
-      {
-        name: "Paid Ads",
-        prospects: 310,
-        cost: 9200,
-        customers: 38,
-        works: false,
-      },
-      {
-        name: "Referral",
-        prospects: 150,
-        cost: 800,
-        customers: 72,
-        works: true,
-      },
-    ],
+    marketing: [],
     ops: {
-      headcount: 18,
-      openRoles: 3,
-      attrition: 0.07,
-      eNPS: 34,
-      productivityPerHead: 11500,
-      trainingHrs: 5.4,
-      customers: 420,
-      repeatRate: 0.38,
-      csat: 4.2,
-      nps: 46,
-      complaints: 8,
-      resolved: 7,
-      onTimeDelivery: 0.91,
-      capacityUsed: 0.74,
+      headcount: 0,
+      openRoles: 0,
+      attrition: 0,
+      eNPS: 0,
+      productivityPerHead: 0,
+      trainingHrs: 0,
+      customers: 0,
+      repeatRate: 0,
+      csat: 0,
+      nps: 0,
+      complaints: 0,
+      resolved: 0,
+      onTimeDelivery: 0,
+      capacityUsed: 0,
     },
   };
 }
@@ -2166,6 +2097,10 @@ export function DashboardClient({
   todayBriefContent = null,
   ownerInitial,
   ownerName,
+  hasBusinessProfile = false,
+  hasBrandVoice = false,
+  hasFinancials = false,
+  hasConnectors = false,
 }: {
   workspaceId: string;
   workspaceName: string;
@@ -2178,6 +2113,10 @@ export function DashboardClient({
   todayBriefContent?: string | null;
   ownerInitial?: string;
   ownerName?: string;
+  hasBusinessProfile?: boolean;
+  hasBrandVoice?: boolean;
+  hasFinancials?: boolean;
+  hasConnectors?: boolean;
 }) {
   const [view, setView] = useState<
     "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
@@ -2450,12 +2389,22 @@ export function DashboardClient({
         <GroupView entries={groupKpis} activeId={workspaceId} />
       )}
       {view === "OFFICE" && (
-        <OfficeView
-          agentStats={agentStats}
-          workspaceName={workspaceName}
-          ownerInitial={ownerInitial}
-          ownerName={ownerName}
-        />
+        <>
+          <WelcomeGuide
+            workspaceName={workspaceName}
+            hasKpiData={kpi.periods.MTD.reach > 0 || kpi.finance.cashBalance > 0}
+            hasBusinessProfile={hasBusinessProfile}
+            hasBrandVoice={hasBrandVoice}
+            hasFinancials={hasFinancials}
+            hasConnectors={hasConnectors}
+          />
+          <OfficeView
+            agentStats={agentStats}
+            workspaceName={workspaceName}
+            ownerInitial={ownerInitial}
+            ownerName={ownerName}
+          />
+        </>
       )}
 
       {/* FOOTER */}
