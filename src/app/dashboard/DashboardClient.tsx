@@ -5,10 +5,10 @@ import Link from "next/link";
 import type { AgentRole } from "@/lib/prompts";
 import { saveKPIs } from "@/server/actions/dashboard";
 import { switchWorkspace } from "@/server/actions/workspaces";
-import dynamic from "next/dynamic";
-
-const OfficeView = dynamic(() => import("@/app/_components/OfficeView").then(m => m.OfficeView), { ssr: false });
-const WelcomeGuide = dynamic(() => import("@/app/_components/WelcomeGuide").then(m => m.WelcomeGuide), { ssr: false });
+// OfficeView and WelcomeGuide temporarily disabled — caused 500 on Cloudflare Workers
+// import dynamic from "next/dynamic";
+// const OfficeView = dynamic(() => import("@/app/_components/OfficeView").then(m => m.OfficeView), { ssr: false });
+// const WelcomeGuide = dynamic(() => import("@/app/_components/WelcomeGuide").then(m => m.WelcomeGuide), { ssr: false });
 
 /* ─── TIER COLOURS (matches WorkspaceSwitcher) ───────────────── */
 const TIER_COLOR: Record<string, string> = {
@@ -2122,7 +2122,7 @@ export function DashboardClient({
 }) {
   const [view, setView] = useState<
     "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
-  >("OFFICE");
+  >("CEO");
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
   const [kpi, setKpi] = useState<WorkspaceKPI>(defaultKPI);
   const [editOpen, setEditOpen] = useState(false);
@@ -2390,23 +2390,13 @@ export function DashboardClient({
       {view === "GROUP" && groupKpis.length > 1 && (
         <GroupView entries={groupKpis} activeId={workspaceId} />
       )}
+      {/* OFFICE view temporarily disabled — investigating 500 on Cloudflare */}
       {view === "OFFICE" && (
-        <>
-          <WelcomeGuide
-            workspaceName={workspaceName}
-            hasKpiData={kpi.periods.MTD.reach > 0 || kpi.finance.cashBalance > 0}
-            hasBusinessProfile={hasBusinessProfile}
-            hasBrandVoice={hasBrandVoice}
-            hasFinancials={hasFinancials}
-            hasConnectors={hasConnectors}
-          />
-          <OfficeView
-            agentStats={agentStats}
-            workspaceName={workspaceName}
-            ownerInitial={ownerInitial}
-            ownerName={ownerName}
-          />
-        </>
+        <div style={{ padding: 40, textAlign: "center" }}>
+          <p style={{ fontSize: 32, marginBottom: 12 }}>🏢</p>
+          <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700 }}>Office View</h3>
+          <p style={{ fontSize: 13, color: "var(--muted)" }}>Coming back shortly — switch to CEO Command Centre above.</p>
+        </div>
       )}
 
       {/* FOOTER */}
