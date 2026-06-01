@@ -146,25 +146,28 @@ export async function deleteWorkspace(
   if (error) return { error: error.message };
 
   // If the deleted workspace was active, switch to another one
-  const jar = await cookies();
-  if (jar.get(ACTIVE_WS_COOKIE)?.value === workspaceId) {
-    const { data: remaining } = await admin
-      .from("workspaces")
-      .select("id")
-      .eq("owner_id", user.id)
-      .limit(1)
-      .maybeSingle();
-    if (remaining) {
-      jar.set(ACTIVE_WS_COOKIE, remaining.id, {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 365,
-      });
-    } else {
-      jar.delete(ACTIVE_WS_COOKIE);
+  try {
+    const jar = await cookies();
+    if (jar.get(ACTIVE_WS_COOKIE)?.value === workspaceId) {
+      const { data: remaining } = await admin
+        .from("workspaces")
+        .select("id")
+        .eq("owner_id", user.id)
+        .eq("onboarded", true)
+        .limit(1)
+        .maybeSingle();
+      if (remaining) {
+        jar.set(ACTIVE_WS_COOKIE, remaining.id, {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365,
+        });
+      } else {
+        jar.delete(ACTIVE_WS_COOKIE);
+      }
     }
-  }
+  } catch { /* cookies() may be read-only in some runtimes */ }
 
   revalidatePath("/", "layout");
   return {};
