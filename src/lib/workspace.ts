@@ -76,9 +76,11 @@ export async function getCurrentWorkspace(): Promise<WorkspaceContext | null> {
       .eq("owner_id", user.id)
       .maybeSingle();
 
-    if (ownedWs) {
+    if (ownedWs && ownedWs.onboarded) {
       resolved = ownedWs as WorkspaceRow;
       isOwner = true;
+    } else if (ownedWs && !ownedWs.onboarded) {
+      // Cookie points to un-onboarded workspace — skip it, fall through to default
     } else if (user.email) {
       // Check membership
       const { data: mem } = await admin
@@ -138,6 +140,13 @@ export async function getCurrentWorkspace(): Promise<WorkspaceContext | null> {
   }
 
   if (!resolved) return null;
+
+  // ── 3b. Fix stale cookie — update if resolved workspace differs from cookie ─
+  if (resolved.id !== activeWsId) {
+    try {
+      jar.set(ACTIVE_WS_COOKIE, resolved.id, { path: "/", maxAge: 60 * 60 * 24 * 365 });
+    } catch { /* cookies() is read-only in some contexts */ }
+  }
 
   // ── 4. Load supporting data + all accessible workspaces ───────────────────
   const [
