@@ -154,7 +154,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       /https:\/\/docs\.google\.com\/spreadsheets\/d\/[a-zA-Z0-9-_]+[^\s]*/,
     )?.[0] ?? null;
 
-  const [{ data: profile }, { data: voice }, sheetsCtx, urlSheetCtx, memories] =
+  const [{ data: profile }, { data: voice }, sheetsCtx, urlSheetCtx, memories, kpiMonths] =
     await Promise.all([
       admin
         .from("business_profiles")
@@ -175,7 +175,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         ? fetchSheetByUrl(workspace.id, sheetsUrlMatch).catch(() => null)
         : Promise.resolve(null),
       // Agent memories — fast indexed read, non-fatal
-      loadMemories(workspace.id, 12).catch(() => []),
+      loadMemories(workspace.id, 12).catch(() => [] as Array<{ category: string; content: string; importance: number }>),
+      // Monthly KPI data — so agents know real business numbers
+      Promise.resolve(
+        admin.from("workspace_kpi_months")
+          .select("month, period_data, finance_data, ops_data")
+          .eq("workspace_id", workspace.id)
+          .order("month", { ascending: false })
+          .limit(3)
+      ).then(r => (r.data ?? []) as Array<{ month: string; period_data: Record<string, number>; finance_data: Record<string, number>; ops_data: Record<string, number> }>)
+        .catch(() => [] as Array<{ month: string; period_data: Record<string, number>; finance_data: Record<string, number>; ops_data: Record<string, number> }>),
     ]);
 
   // URL-pasted sheet leads; pre-configured sheet fills in context below it.
@@ -220,7 +229,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         profile?.industry ? `Industry: ${profile.industry}` : "",
         voice?.voice_summary ? `\n\n== Brand voice ==\n${voice.voice_summary}` : "",
         memories.length > 0
-          ? `\n\n== What I remember about this business ==\n${memories.map(m => `- [${m.category}] ${m.content}`).join("\n")}`
+          ? `\n\n== What I remember about this business ==\n${memories.map((m: { category: string; content: string }) => `- [${m.category}] ${m.content}`).join("\n")}`
           : "",
         connectorData ? `\n\n${connectorData}` : "",
       ].filter(Boolean).join("\n")
@@ -239,6 +248,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     connectorData,
     sheetsHint,
     memories,
+    kpiSnapshot: kpiMonths.length > 0
+      ? kpiMonths.map((m: { month: string; period_data: Record<string, number>; finance_data: Record<string, number>; ops_data: Record<string, number> }) => {
+          const p = m.period_data;
+          const f = m.finance_data;
+          const o = m.ops_data;
+          const rev = p.revenue ? `RM ${Math.round(p.revenue).toLocaleString()}` : (p.reach ? `RM ${Math.round(p.reach * (p.avgSale ?? 0) * (p.avgTxn ?? 1)).toLocaleString()} (computed)` : "n/a");
+          return `${m.month}: Revenue ${rev} | Orders ${p.orders ?? p.reach ?? 0} | Customers ${o.customers ?? 0} | Repeat ${o.repeatRate ? (o.repeatRate * 100).toFixed(1) + "%" : "n/a"} | Headcount ${o.headcount ?? 0} | Cash In RM ${Math.round(f.cashIn ?? 0).toLocaleString()} | GP ${p.gpPct ? (p.gpPct * 100).toFixed(0) + "%" : "n/a"}`;
+        }).join("\n")
+      : undefined,
   });
 
   // 7. Persist the user message before streaming

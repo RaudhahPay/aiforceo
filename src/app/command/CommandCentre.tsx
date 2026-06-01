@@ -48,7 +48,8 @@ export function CommandCentre({
   const ops = (kpi?.ops as Record<string, number> | undefined);
 
   const healthData = {
-    sales: periods?.MTD?.reach ? Math.round((periods.MTD.reach ?? 0) * (periods.MTD.avgSale ?? 0) * (periods.MTD.avgTxn ?? 1)) : 0,
+    sales: (periods?.MTD as Record<string, number> | undefined)?.revenue
+      ?? (periods?.MTD?.reach ? Math.round((periods.MTD.reach ?? 0) * (periods.MTD.avgSale ?? 0) * (periods.MTD.avgTxn ?? 1)) : 0),
     gpPct: periods?.MTD?.gpPct ?? 0,
     customers: ops?.customers ?? 0,
     repeatRate: ops?.repeatRate ?? 0,

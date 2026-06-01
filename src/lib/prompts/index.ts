@@ -94,6 +94,8 @@ export type BuildPromptContext = {
     content: string;
     importance: number;
   }>;
+  /** Current KPI snapshot — injected so agents know the real business numbers. */
+  kpiSnapshot?: string;
 };
 
 import { getAriaFieldGuide } from "@/lib/industry-templates";
@@ -145,7 +147,11 @@ export function buildSystemPrompt(
     ? `\n\n== INDUSTRY-SPECIFIC KPI FIELD MAPPING ==\n${getAriaFieldGuide(ctx.industry)}`
     : "";
 
-  return [SHARED_GUARDRAILS, profile, memorySection, voice, connectorSection, PERSONAS[role], industryGuide]
+  const kpiSection = ctx.kpiSnapshot
+    ? `== Current business numbers (from dashboard) ==\n${ctx.kpiSnapshot}\nUse these REAL numbers when answering questions. Never make up figures when you have actuals.`
+    : "";
+
+  return [SHARED_GUARDRAILS, profile, memorySection, kpiSection, voice, connectorSection, PERSONAS[role], industryGuide]
     .filter(Boolean)
     .join("\n\n");
 }
