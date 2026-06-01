@@ -8,24 +8,24 @@
    Dark command-centre palette (matches Dashboard.jsx)
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Background layers — Facebook dark palette */
-  --bg: #18191a; /* Facebook dark background */
-  --panel: #242526; /* Facebook card surface */
-  --panel2: #3a3b3c; /* Facebook nested surface */
-  --soft: #3a3b3c; /* alias for panel2 */
+  /* Background layers — Premium CEO Command Centre */
+  --bg: #0a0e1a;      /* Deep navy background */
+  --panel: #111827;    /* Card surface */
+  --panel2: #1a2236;   /* Nested surface */
+  --soft: #1a2236;     /* Alias for panel2 */
 
   /* Borders */
-  --line: #3e4042; /* Facebook divider */
+  --line: #1e293b;     /* Subtle divider */
 
   /* Text */
-  --ink: #e4e6eb; /* Facebook primary text */
-  --muted: #b0b3b8; /* Facebook secondary text */
+  --ink: #e8edf6;      /* Primary text */
+  --muted: #8597b8;    /* Secondary text */
 
-  /* Brand accents — Facebook blue */
-  --accent: #1877f2; /* Facebook blue — primary CTA */
-  --gold: #1877f2; /* alias kept for legacy usage */
-  --copper: #166fe5; /* slightly deeper FB blue */
-  --primary: #1877f2; /* unified primary */
+  /* Brand accents — Gold + Royal Blue */
+  --accent: #c5a572;   /* Gold — premium CTA */
+  --gold: #c5a572;     /* Gold accent */
+  --copper: #b8956a;   /* Deeper gold */
+  --primary: #2563eb;  /* Royal blue — secondary CTA */
 
   /* Status */
   --success: #3fb984;
@@ -69,11 +69,11 @@ body {
   cursor: not-allowed;
 }
 
-/* Facebook blue — white text on blue */
+/* Gold — dark text on gold */
 .btn-primary,
 .btn {
   background: var(--accent);
-  color: #fff;
+  color: #0a0e1a;
 }
 .btn-primary:hover,
 .btn:hover:not(.btn-ghost):not(:disabled) {
@@ -159,7 +159,7 @@ select.input option {
 }
 .chip.selected {
   background: var(--gold);
-  color: #fff;
+  color: #0a0e1a;
   border-color: var(--gold);
 }
 

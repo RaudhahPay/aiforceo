@@ -7,30 +7,40 @@ import { signOut } from "@/server/actions/auth";
 import type { WorkspaceStub } from "@/lib/workspace";
 
 type ActivePage =
+  | "command"
   | "dashboard"
-  | "workspaces"
-  | "connectors"
-  | "settings"
-  | "office"
-  | "autopilot"
-  | "investor-pack"
-  | "documents"
   | "agents"
+  | "brief"
+  | "actions"
+  | "sales"
+  | "marketing"
+  | "finance"
+  | "operations"
+  | "customers"
+  | "autopilot"
+  | "tasks"
+  | "alerts"
+  | "settings"
+  | "connectors"
+  | "documents"
+  | "workspaces"
   | "search"
   | "saved"
+  | "office"
+  | "investor-pack"
   | AgentRole;
 
 const ROLES: AgentRole[] = ["aria", "cmo", "coo", "cfo", "ceo", "cto"];
 
 const D = {
-  bg: "#0E1726",
-  panel: "#15203A",
-  panel2: "#1C2A47",
-  line: "#2A3B5E",
-  gold: "#D4A017",
-  text: "#E8EDF6",
-  dim: "#8597B8",
-  red: "#E5544B",
+  bg: "#0a0e1a",
+  panel: "#111827",
+  panel2: "#1a2236",
+  line: "#1e293b",
+  gold: "#c5a572",
+  text: "#e8edf6",
+  dim: "#8597b8",
+  red: "#e5544b",
 };
 
 export function Sidebar({
@@ -131,24 +141,57 @@ export function Sidebar({
             gap: 14,
           }}
         >
-          {/* Main nav */}
-          <Section title="Main">
-            <Item href="/office" active={active === "office"} icon="🏢">
-              Office
+          {/* Command */}
+          <Section title="Command">
+            <Item href="/office" active={active === "command" || active === "office"} icon="⌂">
+              Command Centre
             </Item>
-            <Item href="/dashboard" active={active === "dashboard"} icon="📊">
-              Dashboard
+            <Item href="/agents" active={active === "agents"} icon="👥">
+              AI Executives
             </Item>
-            <Item href="/agents" active={active === "agents"} icon="🤖">
-              Agents
+            <Item href="/dashboard" active={active === "dashboard" || active === "brief"} icon="📋">
+              Morning Brief
+            </Item>
+          </Section>
+
+          {/* Intelligence */}
+          <Section title="Intelligence">
+            <Item href="/dashboard" active={active === "sales"} icon="💰">
+              Sales
+            </Item>
+            <Item href="/dashboard" active={active === "marketing"} icon="📣">
+              Marketing
+            </Item>
+            <Item href="/dashboard" active={active === "finance"} icon="📊">
+              Finance
+            </Item>
+            <Item href="/dashboard" active={active === "operations"} icon="⚙">
+              Operations
+            </Item>
+          </Section>
+
+          {/* Automation */}
+          <Section title="Automation">
+            <Item href="/autopilot" active={active === "autopilot"} icon="⚡">
+              Campaigns
+            </Item>
+            <Item href="/documents" active={active === "documents"} icon="📂">
+              Documents
             </Item>
             <Item href="/search" active={active === "search"} icon="🔍">
               Search
             </Item>
-            <Item href="/saved" active={active === "saved"} icon="⭐">
-              Saved
+          </Section>
+
+          {/* Setup */}
+          <Section title="Setup">
+            <Item href="/settings" active={active === "settings"} icon="⚙">
+              Settings
             </Item>
-            <Item href="/workspaces" active={active === "workspaces"} icon="◫">
+            <Item href="/connectors" active={active === "connectors"} icon="🔗">
+              Connectors
+            </Item>
+            <Item href="/workspaces" active={active === "workspaces"} icon="🏢">
               Workspaces
               {allWorkspaces.length > 1 && (
                 <span
@@ -166,29 +209,10 @@ export function Sidebar({
                 </span>
               )}
             </Item>
-            <Item href="/documents" active={active === "documents"} icon="📂">
-              Documents
-            </Item>
-            <Item href="/connectors" active={active === "connectors"} icon="⊕">
-              Connectors
-            </Item>
-            <Item href="/settings" active={active === "settings"} icon="⚙">
-              Settings
-            </Item>
-            <Item href="/autopilot" active={active === "autopilot"} icon="⚡">
-              Autopilot
-            </Item>
-            <Item
-              href="/reports/investor-pack"
-              active={active === "investor-pack"}
-              icon="📊"
-            >
-              Investor Pack
-            </Item>
           </Section>
 
           {/* AI C-Suite */}
-          <Section title="Command Executives">
+          <Section title="AI Executives">
             {ROLES.map((r) => (
               <Item
                 key={r}
