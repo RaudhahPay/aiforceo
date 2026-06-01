@@ -164,7 +164,7 @@ function UsageTab({
   const usedPct = quota > 0 ? Math.min(100, (used / quota) * 100) : 0;
   const remainPct = Math.round((remaining / Math.max(quota, 1)) * 100);
   const barColor =
-    remainPct > 30 ? "#3FB984" : remainPct > 10 ? "#E5A93C" : "#E5544B";
+    remainPct > 30 ? "var(--success)" : remainPct > 10 ? "#E5A93C" : "var(--red)";
 
   // Only show AI-usage ledger entries (negative delta = consumption)
   const usageEntries = ledger.filter((r) => r.reason === "chat");
@@ -370,7 +370,7 @@ function UsageTab({
                         padding: "9px 8px",
                         textAlign: "right",
                         fontWeight: 700,
-                        color: positive ? "#3FB984" : "#E5544B",
+                        color: positive ? "var(--success)" : "var(--red)",
                       }}
                     >
                       {positive ? "+" : ""}
@@ -628,7 +628,7 @@ function BillingTab({
                       padding: "9px 8px",
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#3FB984",
+                      color: "var(--success)",
                     }}
                   >
                     +{fmtNum(entry.deltaTokens)}
@@ -686,7 +686,7 @@ function TeamTab({ ownerEmail, invites: initialInvites }: { ownerEmail: string; 
             <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{ownerEmail}</p>
             <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>Owner · Full access</p>
           </div>
-          <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "rgba(63,185,132,0.12)", color: "#3FB984" }}>OWNER</span>
+          <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "rgba(63,185,132,0.12)", color: "var(--success)" }}>OWNER</span>
         </div>
       </div>
 
@@ -1257,7 +1257,7 @@ export function SettingsClient({
               decision:      "#C5A572",
               preference:    "#7C3AED",
               concern:       "#F96167",
-              milestone:     "#3FB984",
+              milestone:     "var(--success)",
             };
             const CATEGORY_LABEL: Record<string, string> = {
               business_fact: "Business Fact",

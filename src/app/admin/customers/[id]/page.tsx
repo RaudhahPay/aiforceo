@@ -219,10 +219,10 @@ export default async function AdminCustomerDetailPage({
                 width: `${Math.min(100, (tokensUsedMtd / quota) * 100)}%`,
                 background:
                   tokensUsedMtd / quota > 0.8
-                    ? "#E5544B"
+                    ? "var(--red)"
                     : tokensUsedMtd / quota > 0.5
                       ? "#E5A93C"
-                      : "#3FB984",
+                      : "var(--success)",
               }}
             />
           </div>
@@ -406,7 +406,7 @@ export default async function AdminCustomerDetailPage({
                           </td>
                           <td
                             className="px-3 py-2 font-bold tabular-nums text-right text-xs"
-                            style={{ color: pos ? "#3FB984" : "#E5544B" }}
+                            style={{ color: pos ? "var(--success)" : "var(--red)" }}
                           >
                             {pos ? "+" : ""}
                             {fmtNum(entry.delta_tokens)}

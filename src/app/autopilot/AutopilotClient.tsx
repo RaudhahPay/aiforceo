@@ -67,8 +67,8 @@ const D = {
   gold: "#D4A017",
   text: "#E8EDF6",
   dim: "#8597B8",
-  red: "#E5544B",
-  green: "#3FB984",
+  red: "var(--red)",
+  green: "var(--success)",
   amber: "#E5A93C",
 };
 

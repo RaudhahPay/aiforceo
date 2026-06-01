@@ -8,7 +8,7 @@ type Props = {
   height?: number;
 };
 
-export function MiniChart({ data, color = "#c5a572", height = 40 }: Props) {
+export function MiniChart({ data, color = "var(--accent)", height = 40 }: Props) {
   const chartData = data.map((value, index) => ({ index, value }));
 
   return (

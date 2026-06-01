@@ -148,7 +148,7 @@ function AssistantContent({
                 padding: "0.1em 0.35em",
                 fontSize: "0.88em",
                 fontFamily: "monospace",
-                color: "#c5a572",
+                color: "var(--accent)",
               }}
             >
               {children}
@@ -157,8 +157,8 @@ function AssistantContent({
           pre: ({ children }) => (
             <pre
               style={{
-                background: "#0a0e1a",
-                border: "1px solid #1e293b",
+                background: "var(--bg)",
+                border: "1px solid var(--line)",
                 borderRadius: "8px",
                 padding: "0.75em 1em",
                 overflowX: "auto",
@@ -175,7 +175,7 @@ function AssistantContent({
                 borderLeft: "3px solid #c5a572",
                 paddingLeft: "0.75em",
                 margin: "0.5em 0",
-                color: "#8597b8",
+                color: "var(--muted)",
               }}
             >
               {children}
@@ -185,20 +185,20 @@ function AssistantContent({
             <hr
               style={{
                 border: "none",
-                borderTop: "1px solid #1e293b",
+                borderTop: "1px solid var(--line)",
                 margin: "0.75em 0",
               }}
             />
           ),
           table: ({ children }) => (
-            <div style={{ overflowX: "auto", margin: "0.75em 0", borderRadius: 10, border: "1px solid #1e293b" }}>
+            <div style={{ overflowX: "auto", margin: "0.75em 0", borderRadius: 10, border: "1px solid var(--line)" }}>
               <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.87em", minWidth: 300 }}>
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead style={{ background: "#111827" }}>{children}</thead>
+            <thead style={{ background: "var(--panel)" }}>{children}</thead>
           ),
           tbody: ({ children }) => (
             <tbody>{children}</tbody>
@@ -207,15 +207,15 @@ function AssistantContent({
             // Alternate row shading — check if parent is tbody via heuristic
             const isHeader = (props as { node?: { tagName?: string }; "data-sourcepos"?: string })["data-sourcepos"]?.startsWith("1:");
             return (
-              <tr style={{ background: isHeader ? "#111827" : undefined }}>{children}</tr>
+              <tr style={{ background: isHeader ? "var(--panel)" : undefined }}>{children}</tr>
             );
           },
           th: ({ children }) => (
             <th
               style={{
-                border: "1px solid #1e293b",
+                border: "1px solid var(--line)",
                 padding: "9px 14px",
-                background: "#1a2236",
+                background: "var(--panel2)",
                 fontWeight: 700,
                 textAlign: "left",
                 color: "#C5A572",
@@ -230,7 +230,7 @@ function AssistantContent({
           td: ({ children }) => (
             <td
               style={{
-                border: "1px solid #1e293b",
+                border: "1px solid var(--line)",
                 padding: "8px 14px",
                 lineHeight: 1.5,
                 verticalAlign: "top",
@@ -280,9 +280,9 @@ function ExportBar({
     fontSize: 11,
     fontWeight: 600,
     cursor: "pointer",
-    border: "1px solid #1e293b",
+    border: "1px solid var(--line)",
     background: "transparent",
-    color: "#8597b8",
+    color: "var(--muted)",
     transition: "all 0.15s",
   };
 
@@ -291,8 +291,8 @@ function ExportBar({
       <button
         style={{
           ...btnStyle,
-          color: copied ? "#3FB984" : "#8597b8",
-          borderColor: copied ? "#3FB984" : "#1e293b",
+          color: copied ? "var(--success)" : "var(--muted)",
+          borderColor: copied ? "var(--success)" : "var(--line)",
         }}
         onClick={handleCopy}
       >
@@ -533,8 +533,8 @@ export function ChatClient({
         <div
           style={{
             padding: "14px 28px",
-            background: "#111827",
-            borderBottom: "1px solid #1e293b",
+            background: "var(--panel)",
+            borderBottom: "1px solid var(--line)",
             display: "flex",
             alignItems: "center",
             gap: 14,
@@ -563,12 +563,12 @@ export function ChatClient({
                 margin: 0,
                 fontSize: 17,
                 fontFamily: "Georgia,serif",
-                color: "#e8edf6",
+                color: "var(--ink)",
               }}
             >
               {agent.name} · {agent.title}
             </h3>
-            <p style={{ margin: 0, fontSize: 11, color: "#8597b8" }}>
+            <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
               {workspaceName} · {agent.tag}
             </p>
           </div>
@@ -581,8 +581,8 @@ export function ChatClient({
                   title="View past conversations"
                   style={{
                     padding: "7px 12px", borderRadius: 9, fontSize: 12, fontWeight: 600,
-                    cursor: "pointer", background: showHistory ? "#1e293b" : "transparent",
-                    border: "1px solid #1e293b", color: "#8597b8",
+                    cursor: "pointer", background: showHistory ? "var(--line)" : "transparent",
+                    border: "1px solid var(--line)", color: "var(--muted)",
                     display: "flex", alignItems: "center", gap: 5,
                   }}
                 >
@@ -591,12 +591,12 @@ export function ChatClient({
                 {showHistory && (
                   <div style={{
                     position: "absolute", top: "calc(100% + 6px)", right: 0,
-                    width: 280, background: "#111827", border: "1px solid #1e293b",
+                    width: 280, background: "var(--panel)", border: "1px solid var(--line)",
                     borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                     zIndex: 20, overflow: "hidden",
                   }}>
-                    <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #1e293b" }}>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#8597b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--line)" }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Past conversations
                       </p>
                     </div>
@@ -609,13 +609,13 @@ export function ChatClient({
                             display: "block", width: "100%", textAlign: "left",
                             padding: "10px 14px", background: "transparent",
                             border: "none", borderBottom: "1px solid #1a2236",
-                            cursor: "pointer", color: "#e8edf6",
+                            cursor: "pointer", color: "var(--ink)",
                           }}
                         >
                           <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500 }}>
                             {c.title ?? "Chat"}
                           </p>
-                          <p style={{ margin: 0, fontSize: 11, color: "#8597b8" }}>
+                          <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
                             {new Date(c.updatedAt).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })}
                           </p>
                         </button>
@@ -634,7 +634,7 @@ export function ChatClient({
                 style={{
                   padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: 600,
                   cursor: pending ? "default" : "pointer", background: "transparent",
-                  border: "1px solid #1e293b", color: "#8597b8", opacity: pending ? 0.4 : 1,
+                  border: "1px solid var(--line)", color: "var(--muted)", opacity: pending ? 0.4 : 1,
                 }}
               >
                 ✕ Clear
@@ -648,7 +648,7 @@ export function ChatClient({
               style={{
                 padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600,
                 cursor: pending || newChatLoading ? "default" : "pointer",
-                background: "transparent", border: "1px solid #1e293b", color: "#8597b8",
+                background: "transparent", border: "1px solid var(--line)", color: "var(--muted)",
                 opacity: pending || newChatLoading ? 0.4 : 1,
                 display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap",
               }}
@@ -694,7 +694,7 @@ export function ChatClient({
                   margin: "0 0 6px",
                   fontSize: 22,
                   fontFamily: "Georgia,serif",
-                  color: "#e8edf6",
+                  color: "var(--ink)",
                 }}
               >
                 {agent.name} is ready.
@@ -702,7 +702,7 @@ export function ChatClient({
               <p
                 style={{
                   fontSize: 13,
-                  color: "#8597b8",
+                  color: "var(--muted)",
                   maxWidth: 380,
                   margin: "0 auto 24px",
                 }}
@@ -759,10 +759,10 @@ export function ChatClient({
                     justifyContent: "center",
                     fontWeight: 700,
                     fontSize: 11,
-                    background: m.role === "user" ? "#c5a572" : grad,
+                    background: m.role === "user" ? "var(--accent)" : grad,
                     color:
                       m.role === "user"
-                        ? "#0a0e1a"
+                        ? "var(--bg)"
                         : onLight
                           ? "#1E2761"
                           : "#fff",
@@ -785,9 +785,9 @@ export function ChatClient({
                       padding: "10px 16px",
                       fontSize: 13,
                       lineHeight: 1.65,
-                      background: m.role === "user" ? "#c5a572" : "#1a2236",
+                      background: m.role === "user" ? "var(--accent)" : "var(--panel2)",
                       border: m.role === "user" ? "none" : "1px solid #1e293b",
-                      color: m.role === "user" ? "#0a0e1a" : "#e8edf6",
+                      color: m.role === "user" ? "var(--bg)" : "var(--ink)",
                       minWidth: "2rem",
                     }}
                   >
@@ -841,11 +841,11 @@ export function ChatClient({
                       }}>
                         <span style={{ fontSize: 20 }}>{alreadyApplied ? "✅" : "📊"}</span>
                         <div style={{ flex: 1 }}>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: alreadyApplied ? "#3FB984" : "var(--accent)" }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: alreadyApplied ? "var(--success)" : "var(--accent)" }}>
                             {alreadyApplied ? "Dashboard updated!" : "Aria wants to update your dashboard KPIs"}
                           </p>
                           <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>
-                            {alreadyApplied ? (<>The numbers are saved. <a href="/dashboard" style={{ color: "#3FB984", textDecoration: "underline" }}>Go to Dashboard →</a></>) : "Review the numbers above, then confirm to update."}
+                            {alreadyApplied ? (<>The numbers are saved. <a href="/dashboard" style={{ color: "var(--success)", textDecoration: "underline" }}>Go to Dashboard →</a></>) : "Review the numbers above, then confirm to update."}
                           </p>
                         </div>
                         {!alreadyApplied && (
@@ -889,10 +889,10 @@ export function ChatClient({
                         <button
                           onClick={() => void handleStar(i, m.id)}
                           title={starredMsgs[i] ? "Remove from saved" : "Save this response"}
-                          style={{ background: "none", border: "1px solid #1e293b", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: starredMsgs[i] ? "#c5a572" : "#8597b8" }}
+                          style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: starredMsgs[i] ? "var(--accent)" : "var(--muted)" }}
                         >{starredMsgs[i] ? "⭐" : "☆"}</button>
                         {feedbackSent[i] ? (
-                          <span style={{ fontSize: 11, color: "#8597b8", padding: "4px 8px" }}>
+                          <span style={{ fontSize: 11, color: "var(--muted)", padding: "4px 8px" }}>
                             {feedbackSent[i] === "up" ? "👍 Noted" : "👎 Noted"}
                           </span>
                         ) : (
@@ -900,12 +900,12 @@ export function ChatClient({
                             <button
                               onClick={() => handleFeedback(i, "up")}
                               title="Helpful response"
-                              style={{ background: "none", border: "1px solid #1e293b", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "#8597b8" }}
+                              style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "var(--muted)" }}
                             >👍</button>
                             <button
                               onClick={() => handleFeedback(i, "down")}
                               title="Not helpful"
-                              style={{ background: "none", border: "1px solid #1e293b", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "#8597b8" }}
+                              style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, cursor: "pointer", padding: "3px 8px", fontSize: 13, color: "var(--muted)" }}
                             >👎</button>
                           </>
                         )}
@@ -922,8 +922,8 @@ export function ChatClient({
         <div
           style={{
             padding: "16px 28px",
-            background: "#111827",
-            borderTop: "1px solid #1e293b",
+            background: "var(--panel)",
+            borderTop: "1px solid var(--line)",
           }}
         >
           {/* Hidden file input */}
@@ -939,8 +939,8 @@ export function ChatClient({
           {/* Attachment error banner */}
           {attachmentError && (
             <div style={{ padding: "6px 14px", background: "rgba(229,84,75,0.1)", border: "1px solid rgba(229,84,75,0.3)", borderRadius: 8, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "#E5544B" }}>⚠ {attachmentError}</span>
-              <button type="button" onClick={clearAttachmentError} style={{ background: "none", border: "none", cursor: "pointer", color: "#E5544B", fontSize: 16, lineHeight: 1 }}>×</button>
+              <span style={{ fontSize: 12, color: "var(--red)" }}>⚠ {attachmentError}</span>
+              <button type="button" onClick={clearAttachmentError} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", fontSize: 16, lineHeight: 1 }}>×</button>
             </div>
           )}
 
@@ -948,14 +948,14 @@ export function ChatClient({
           {pendingAttachments.length > 0 && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
               {pendingAttachments.map((att) => (
-                <div key={att.id} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid #1e293b", background: "#111827" }}>
+                <div key={att.id} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)", background: "var(--panel)" }}>
                   {att.preview ? (
                     // eslint-disable-next-line @next/next/no-img-element -- base64 preview, no network optimisation
                     <img src={att.preview} alt={att.name} style={{ width: 60, height: 60, objectFit: "cover", display: "block" }} />
                   ) : (
                     <div style={{ width: 60, height: 60, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 4 }}>
                       <span style={{ fontSize: 22 }}>{att.mimeType === "application/pdf" ? "📄" : "📁"}</span>
-                      <span style={{ fontSize: 9, color: "#8597b8", textAlign: "center", lineHeight: 1.2, marginTop: 2, overflow: "hidden", maxWidth: 56, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.name}</span>
+                      <span style={{ fontSize: 9, color: "var(--muted)", textAlign: "center", lineHeight: 1.2, marginTop: 2, overflow: "hidden", maxWidth: 56, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.name}</span>
                     </div>
                   )}
                   <button
@@ -975,8 +975,8 @@ export function ChatClient({
               alignItems: "center",
               borderRadius: 16,
               padding: "8px 8px 8px 12px",
-              background: "#1a2236",
-              border: `1.5px solid ${pending ? "#c5a572" : "#1e293b"}`,
+              background: "var(--panel2)",
+              border: `1.5px solid ${pending ? "var(--accent)" : "var(--line)"}`,
               transition: "border-color 0.2s",
             }}
             onSubmit={(e) => {
@@ -992,7 +992,7 @@ export function ChatClient({
               title="Attach file or image"
               style={{
                 background: "none", border: "none", cursor: pending ? "default" : "pointer",
-                color: pendingAttachments.length > 0 ? "#c5a572" : "#8597b8",
+                color: pendingAttachments.length > 0 ? "var(--accent)" : "var(--muted)",
                 fontSize: 18, padding: "0 4px", flexShrink: 0,
                 opacity: pending ? 0.4 : 1,
               }}
@@ -1017,7 +1017,7 @@ export function ChatClient({
                 outline: "none",
                 padding: "6px 0",
                 fontSize: 13,
-                color: "#e8edf6",
+                color: "var(--ink)",
               }}
               disabled={pending || attachmentProcessing}
             />
@@ -1030,8 +1030,8 @@ export function ChatClient({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#c5a572",
-                color: "#0a0e1a",
+                background: "var(--accent)",
+                color: "var(--bg)",
                 fontWeight: 700,
                 fontSize: 16,
                 border: "none",
