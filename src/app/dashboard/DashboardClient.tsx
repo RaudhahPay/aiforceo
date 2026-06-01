@@ -542,7 +542,7 @@ function CEOView({
   remaining: number;
   quota: number;
 }) {
-  const dscr = f.noi / f.debtPayment;
+  const dscr = f.debtPayment > 0 ? f.noi / f.debtPayment : 0;
   const creditPct = Math.round((remaining / Math.max(quota, 1)) * 100);
   const activeAgents = (
     ["aria", "cmo", "coo", "cfo", "ceo", "cto"] as AgentRole[]
