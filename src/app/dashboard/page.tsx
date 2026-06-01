@@ -96,6 +96,22 @@ export default async function DashboardPage() {
     todayBriefContent = briefMsg?.content ?? null;
   }
 
+  // Check setup status for WelcomeGuide (non-fatal)
+  let hasBusinessProfile = false;
+  let hasBrandVoice = false;
+  let hasFinancials = false;
+  const hasConnectors = (connectors ?? []).length > 0;
+  try {
+    const [{ data: bp }, { data: bv }, { data: fs }] = await Promise.all([
+      admin.from("business_profiles").select("industry").eq("workspace_id", workspace.id).maybeSingle(),
+      admin.from("brand_voice").select("voice_summary").eq("workspace_id", workspace.id).maybeSingle(),
+      admin.from("financial_snapshots").select("id").eq("workspace_id", workspace.id).limit(1).maybeSingle(),
+    ]);
+    hasBusinessProfile = !!bp?.industry;
+    hasBrandVoice = !!bv?.voice_summary;
+    hasFinancials = !!fs;
+  } catch { /* non-fatal */ }
+
   // Load saved KPIs from DB (falls back to null → client uses localStorage → default)
   // Also load KPIs for all other workspaces so the Group View can compare companies
   const [savedKpis, ...otherKpisRaw] = await Promise.all([
@@ -147,6 +163,12 @@ export default async function DashboardPage() {
         connectedSources={(connectors ?? []).length}
         groupKpis={groupKpis}
         todayBriefContent={todayBriefContent}
+        ownerInitial={(ctx.user?.email ?? "B")[0]!.toUpperCase()}
+        ownerName={ctx.user?.email?.split("@")[0] ?? "Boss"}
+        hasBusinessProfile={hasBusinessProfile}
+        hasBrandVoice={hasBrandVoice}
+        hasFinancials={hasFinancials}
+        hasConnectors={hasConnectors}
       />
     </div>
   );

@@ -5,6 +5,10 @@ import Link from "next/link";
 import type { AgentRole } from "@/lib/prompts";
 import { saveKPIs } from "@/server/actions/dashboard";
 import { switchWorkspace } from "@/server/actions/workspaces";
+import dynamic from "next/dynamic";
+
+const OfficeView = dynamic(() => import("@/app/_components/OfficeView").then(m => m.OfficeView), { ssr: false });
+const WelcomeGuide = dynamic(() => import("@/app/_components/WelcomeGuide").then(m => m.WelcomeGuide), { ssr: false });
 
 /* ─── TIER COLOURS (matches WorkspaceSwitcher) ───────────────── */
 const TIER_COLOR: Record<string, string> = {
@@ -2163,6 +2167,12 @@ export function DashboardClient({
   connectedSources,
   groupKpis = [],
   todayBriefContent = null,
+  ownerInitial,
+  ownerName,
+  hasBusinessProfile = false,
+  hasBrandVoice = false,
+  hasFinancials = false,
+  hasConnectors = false,
 }: {
   workspaceId: string;
   workspaceName: string;
@@ -2173,10 +2183,16 @@ export function DashboardClient({
   connectedSources: number;
   groupKpis?: GroupEntry[];
   todayBriefContent?: string | null;
+  ownerInitial?: string;
+  ownerName?: string;
+  hasBusinessProfile?: boolean;
+  hasBrandVoice?: boolean;
+  hasFinancials?: boolean;
+  hasConnectors?: boolean;
 }) {
   const [view, setView] = useState<
-    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP"
-  >("CEO");
+    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
+  >("OFFICE");
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
   const [kpi, setKpi] = useState<WorkspaceKPI>(defaultKPI);
   const [editOpen, setEditOpen] = useState(false);
@@ -2225,6 +2241,7 @@ export function DashboardClient({
   const accent = C.gold;
 
   const VIEWS: [string, string][] = [
+    ["OFFICE", "🏢 Office View"],
     ["CEO", "CEO Command Centre"],
     ["SALES", "Sales & Profit"],
     ["MARKETING", "Marketing / CMO"],
@@ -2455,6 +2472,24 @@ export function DashboardClient({
       {view === "COO" && <COOView o={kpi.ops} accent={accent} />}
       {view === "GROUP" && groupKpis.length > 1 && (
         <GroupView entries={groupKpis} activeId={workspaceId} />
+      )}
+      {view === "OFFICE" && (
+        <>
+          <WelcomeGuide
+            workspaceName={workspaceName}
+            hasKpiData={kpi.periods.MTD.reach > 0 || (kpi.finance?.cashBalance ?? 0) > 0}
+            hasBusinessProfile={hasBusinessProfile}
+            hasBrandVoice={hasBrandVoice}
+            hasFinancials={hasFinancials}
+            hasConnectors={hasConnectors}
+          />
+          <OfficeView
+            agentStats={agentStats}
+            workspaceName={workspaceName}
+            ownerInitial={ownerInitial}
+            ownerName={ownerName}
+          />
+        </>
       )}
 
       {/* FOOTER */}
