@@ -30,14 +30,9 @@
     "STRIPE_PRICE_GROWTH": "price_1Tc2vjPgT26z0VtYPJINDC2o",
     "STRIPE_PRICE_SCALE": "price_1Tc2vjPgT26z0VtY3fVBakRa",
     "STRIPE_PRICE_SETUP": "price_1TcBdPPgT26z0VtYrZfm15Gh",
-    "STRIPE_PRICE_TOPUP": "price_1TcBdPPgT26z0VtYDnmwpfmG",
-    "STRIPE_PRICE_TOPUP_PLACEHOLDER": "see_cloudflare_dashboard"
+    "STRIPE_PRICE_TOPUP": "price_1TcBdPPgT26z0VtYDnmwpfmG"
   }
-  // The following OAuth credentials must be set in Cloudflare Dashboard manually:
-  //   Workers → boardroom-ai → Settings → Variables → + Add (as Plaintext)
-  //   - QUICKBOOKS_CLIENT_ID
-  //   - QUICKBOOKS_CLIENT_SECRET
-  //   - GOOGLE_CLIENT_ID
-  //   - GOOGLE_CLIENT_SECRET
-  // GitHub Push Protection blocks OAuth secrets in code.
+  // OAuth credentials (GOOGLE_CLIENT_ID/SECRET, QUICKBOOKS_CLIENT_ID/SECRET)
+  // must be set directly in Cloudflare Dashboard → Variables
+  // (GitHub Push Protection blocks them in code)
 }
