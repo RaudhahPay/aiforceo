@@ -2123,20 +2123,29 @@ export function DashboardClient({
   // true when the KPI data is all defaults (no real business data entered yet)
   const isDefaultData = monthlyRecords.length === 0 && (!savedKpis || Object.keys(savedKpis).length === 0);
 
-  // Build list of available months for the picker
+  // Build list of months for the picker — all months of current year + any historical data months
   const availableMonths = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthIdx = now.getMonth(); // 0-indexed
     const months = new Set<string>();
-    months.add(defaultMonth); // Always include current month
+
+    // All months up to current month in current year
+    for (let m = 0; m <= currentMonthIdx; m++) {
+      months.add(`${currentYear}-${String(m + 1).padStart(2, "0")}`);
+    }
+    // Any historical months from DB records (prior years)
     for (const rec of monthlyRecords) months.add(rec.month);
+
     return Array.from(months).sort().reverse();
-  }, [monthlyRecords, defaultMonth]);
+  }, [monthlyRecords]);
 
   // Month labels for picker
   const monthLabels = useMemo(() => {
     const labels: Record<string, string> = {};
     for (const m of availableMonths) {
       const hasData = monthlyRecords.some((r) => r.month === m);
-      labels[m] = formatMonth(m) + (hasData ? "" : " (no data)");
+      labels[m] = formatMonth(m) + (hasData ? "" : " ·");
     }
     return labels;
   }, [availableMonths, monthlyRecords]);
