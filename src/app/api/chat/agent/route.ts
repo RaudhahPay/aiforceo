@@ -38,12 +38,12 @@ const RequestSchema = z.object({
     .array(
       z.object({
         role:        z.enum(["user", "assistant"]),
-        content:     z.string().min(0).max(8000), // 0 allowed when attachments are present
+        content:     z.string().min(0).max(50000), // assistant messages can be very long (KPI tables, reports)
         attachments: z.array(AttachmentSchema).max(5).optional(),
       }),
     )
     .min(1)
-    .max(40),
+    .max(60),
 });
 
 // ── Build Anthropic content blocks ─────────────────────────────────────────
@@ -105,7 +105,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     return makeJson({ error: "Invalid JSON" }, 400);
   }
   const parsed = RequestSchema.safeParse(body);
-  if (!parsed.success) return makeJson({ error: "Bad input" }, 400);
+  if (!parsed.success) {
+    console.error("Request validation failed:", JSON.stringify(parsed.error.issues.map(i => ({ path: i.path, message: i.message, code: i.code }))));
+    return makeJson({ error: "Bad input", details: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`) }, 400);
+  }
   const { conversationId, role, messages } = parsed.data;
 
   // 3 + 4. Resolve workspace FROM the conversation (eliminates multi-workspace ambiguity).
