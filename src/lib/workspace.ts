@@ -68,8 +68,8 @@ export async function getCurrentWorkspace(): Promise<WorkspaceContext | null> {
 
   // ── 1. Try the cookie-selected workspace ──────────────────────────────────
   if (activeWsId) {
-    // Check ownership first
-    const { data: ownedWs } = await supabase
+    // Check ownership first — use admin client (user already verified via auth)
+    const { data: ownedWs } = await admin
       .from("workspaces")
       .select("id, name, tier, monthly_token_quota, onboarded")
       .eq("id", activeWsId)
@@ -99,12 +99,14 @@ export async function getCurrentWorkspace(): Promise<WorkspaceContext | null> {
     }
   }
 
-  // ── 2. No cookie (or cookie miss) — default to oldest owned workspace ─────
+  // ── 2. No cookie (or cookie miss) — default to oldest onboarded owned workspace ─
   if (!resolved) {
-    const { data: ownedWs } = await supabase
+    // Use admin client to bypass RLS — we already verified user via auth.getUser()
+    const { data: ownedWs } = await admin
       .from("workspaces")
       .select("id, name, tier, monthly_token_quota, onboarded")
       .eq("owner_id", user.id)
+      .eq("onboarded", true)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -144,20 +146,21 @@ export async function getCurrentWorkspace(): Promise<WorkspaceContext | null> {
     { data: ownedAll },
     { data: memberAll },
   ] = await Promise.all([
-    supabase
+    admin
       .from("business_profiles")
       .select("industry, size, challenges, goals_90d")
       .eq("workspace_id", resolved.id)
       .maybeSingle(),
-    supabase
+    admin
       .from("brand_voice")
       .select("voice_summary, tone_attributes, words_to_use, words_to_avoid")
       .eq("workspace_id", resolved.id)
       .maybeSingle(),
-    supabase
+    admin
       .from("workspaces")
       .select("id, name, tier")
       .eq("owner_id", user.id)
+      .eq("onboarded", true)
       .order("created_at", { ascending: true }),
     user.email
       ? admin
