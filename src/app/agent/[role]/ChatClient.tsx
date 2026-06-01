@@ -845,7 +845,7 @@ export function ChatClient({
                             {alreadyApplied ? "Dashboard updated!" : "Aria wants to update your dashboard KPIs"}
                           </p>
                           <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>
-                            {alreadyApplied ? "The numbers are now live on your dashboard." : "Review the numbers above, then confirm to update."}
+                            {alreadyApplied ? (<>The numbers are saved. <a href="/dashboard" style={{ color: "#3FB984", textDecoration: "underline" }}>Go to Dashboard →</a></>) : "Review the numbers above, then confirm to update."}
                           </p>
                         </div>
                         {!alreadyApplied && (
@@ -857,6 +857,10 @@ export function ChatClient({
                                 const res = await mergeKPIUpdate(parsed.updates);
                                 if (res.ok) {
                                   setFeedbackSent((prev) => ({ ...prev, [i]: "up" }));
+                                  // Also clear localStorage KPI cache so dashboard loads fresh from DB
+                                  try { localStorage.removeItem(`ai4c_kpi_${new URL(window.location.href).searchParams.get("ws") ?? ""}`); } catch {}
+                                  // Refresh server component data
+                                  router.refresh();
                                 }
                               } catch { /* silent */ }
                             }}
