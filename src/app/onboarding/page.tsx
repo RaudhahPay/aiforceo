@@ -121,7 +121,11 @@ export default function OnboardingPage() {
       setSaving(false);
       return;
     }
-    router.push(firstAgent ? `/agent/${firstAgent}` : "/dashboard");
+    // Set active workspace cookie so getCurrentWorkspace() resolves to the new one
+    if (res.workspaceId) {
+      document.cookie = `ai4c_active_ws=${res.workspaceId};path=/;max-age=${60 * 60 * 24 * 365}`;
+    }
+    router.push("/command");
   }
 
   const progress = (step / 5) * 100;
