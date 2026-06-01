@@ -863,8 +863,10 @@ export function ChatClient({
                                     keys.forEach(k => localStorage.removeItem(k));
                                   } catch {}
                                   router.refresh();
+                                } else {
+                                  alert(`Update failed: ${res.error ?? "Unknown error"}`);
                                 }
-                              } catch { /* silent */ }
+                              } catch (e) { alert(`Error: ${e instanceof Error ? e.message : String(e)}`); }
                             }}
                           >
                             ✓ Update Dashboard
