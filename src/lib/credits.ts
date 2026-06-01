@@ -10,6 +10,14 @@ export const TIER_MONTHLY_TOKENS: Readonly<Record<string, number>> = {
   scale: 8_000_000,
 };
 
+/** Maximum token balance a tier can accumulate (carry-over cap). */
+export const TIER_MAX_BALANCE: Readonly<Record<string, number>> = {
+  trial: 100_000,       // no carry over
+  starter: 1_000_000,
+  growth: 5_000_000,
+  scale: 20_000_000,
+};
+
 /** Pure: compute how many tokens remain. Exposed for testing. */
 export function remainingFromLedger(
   rows: Array<{ delta_tokens: number }>,
@@ -40,26 +48,41 @@ export async function getRemainingTokens(workspaceId: string): Promise<number> {
     .maybeSingle();
 
   if (!thisMonthGrant) {
-    // Auto-grant this month's quota based on workspace tier
+    // Auto-grant this month's quota based on workspace tier, respecting carry-over cap
     const { data: ws } = await supa
       .from("workspaces")
       .select("tier")
       .eq("id", workspaceId)
       .maybeSingle();
 
-    const tokens = TIER_MONTHLY_TOKENS[ws?.tier ?? "trial"] ?? 100_000;
-    // Insert — ignore duplicate if two requests race at month boundary
-    try {
-      await supa
-        .from("credit_ledger")
-        .insert({
-          workspace_id: workspaceId,
-          delta_tokens: tokens,
-          reason: "monthly_reset",
-        })
-        .throwOnError();
-    } catch {
-      /* concurrent insert — safe to ignore */
+    const tier = ws?.tier ?? "trial";
+    const monthlyGrant = TIER_MONTHLY_TOKENS[tier] ?? 100_000;
+    const maxBalance = TIER_MAX_BALANCE[tier] ?? 100_000;
+
+    // Check current balance BEFORE granting, so we don't exceed the cap
+    const { data: currentLedger } = await supa
+      .from("credit_ledger")
+      .select("delta_tokens")
+      .eq("workspace_id", workspaceId);
+    const currentBalance = (currentLedger ?? []).reduce((s, r) => s + r.delta_tokens, 0);
+
+    // Only grant enough to reach the cap (or the full grant if under cap)
+    const grantAmount = Math.max(0, Math.min(monthlyGrant, maxBalance - currentBalance));
+
+    if (grantAmount > 0) {
+      // Insert — ignore duplicate if two requests race at month boundary
+      try {
+        await supa
+          .from("credit_ledger")
+          .insert({
+            workspace_id: workspaceId,
+            delta_tokens: grantAmount,
+            reason: "monthly_reset",
+          })
+          .throwOnError();
+      } catch {
+        /* concurrent insert — safe to ignore */
+      }
     }
   }
 
@@ -97,8 +120,8 @@ export async function grantMonthlyQuota(
   tier: string,
   stripeInvoiceId?: string,
 ): Promise<void> {
-  const tokens = TIER_MONTHLY_TOKENS[tier] ?? 0;
-  if (tokens <= 0) return;
+  const monthlyGrant = TIER_MONTHLY_TOKENS[tier] ?? 0;
+  if (monthlyGrant <= 0) return;
   const supa = createSupabaseAdminClient();
 
   // Idempotency: skip if this invoice has already been credited.
@@ -112,9 +135,20 @@ export async function grantMonthlyQuota(
     if (existing) return;
   }
 
+  // Respect carry-over cap — only grant enough to reach the tier max
+  const maxBalance = TIER_MAX_BALANCE[tier] ?? 100_000;
+  const { data: currentLedger } = await supa
+    .from("credit_ledger")
+    .select("delta_tokens")
+    .eq("workspace_id", workspaceId);
+  const currentBalance = (currentLedger ?? []).reduce((s, r) => s + r.delta_tokens, 0);
+  const grantAmount = Math.max(0, Math.min(monthlyGrant, maxBalance - currentBalance));
+
+  if (grantAmount <= 0) return; // Already at or above cap
+
   const { error } = await supa.from("credit_ledger").insert({
     workspace_id: workspaceId,
-    delta_tokens: tokens,
+    delta_tokens: grantAmount,
     reason: "monthly_reset",
     stripe_invoice_id: stripeInvoiceId ?? null,
   });
