@@ -135,16 +135,17 @@ function compute(r: PeriodRaw): PeriodData {
 }
 
 /* ─── DEFAULT KPI DATA ───────────────────────────────────────── */
+const ZERO_PERIOD: PeriodRaw = {
+  reach: 0, leadCR: 0, saleCR: 0, avgSale: 0, avgTxn: 0,
+  gpPct: 0, opex: 0, capexMtd: 0, capexYtd: 0, fixedCost: 0,
+};
+
 function defaultKPI(): WorkspaceKPI {
-  const zeroPeriod = {
-    reach: 0, leadCR: 0, saleCR: 0, avgSale: 0, avgTxn: 0,
-    gpPct: 0, opex: 0, capexMtd: 0, capexYtd: 0, fixedCost: 0,
-  };
   return {
     periods: {
-      MTD: { ...zeroPeriod },
-      QTD: { ...zeroPeriod },
-      YTD: { ...zeroPeriod },
+      MTD: { ...ZERO_PERIOD },
+      QTD: { ...ZERO_PERIOD },
+      YTD: { ...ZERO_PERIOD },
     },
     finance: {
       cashIn: 0, cashOut: 0, cashBalance: 0,
@@ -159,6 +160,52 @@ function defaultKPI(): WorkspaceKPI {
       customers: 0, repeatRate: 0, csat: 0, nps: 0,
       complaints: 0, resolved: 0, onTimeDelivery: 0, capacityUsed: 0,
     },
+  };
+}
+
+/**
+ * Auto-derive QTD / YTD from MTD when they are empty or zero.
+ * Currently we only store one month of data, so:
+ *   - QTD = MTD × monthsInQuarterSoFar (volume fields) / rates carry over
+ *   - YTD = MTD × monthsInYearSoFar   (volume fields) / rates carry over
+ *
+ * Volume fields (scale with months): reach, opex, capexMtd, fixedCost
+ * Rate/avg fields (carry over as-is): leadCR, saleCR, avgSale, avgTxn, gpPct
+ * capexYtd is already cumulative by definition.
+ */
+function derivePeriods(periods: WorkspaceKPI["periods"]): WorkspaceKPI["periods"] {
+  const mtd = periods.MTD;
+  const now = new Date();
+  const month = now.getMonth(); // 0-indexed
+  const monthInQuarter = (month % 3) + 1;   // 1, 2, or 3
+  const monthInYear = month + 1;             // 1-12
+
+  function isEmpty(p: PeriodRaw): boolean {
+    return p.reach === 0 && p.opex === 0 && p.avgSale === 0 && p.gpPct === 0;
+  }
+
+  function scale(src: PeriodRaw, months: number): PeriodRaw {
+    return {
+      // Volume fields — multiply by months
+      reach: Math.round(src.reach * months),
+      opex: Math.round(src.opex * months),
+      capexMtd: src.capexMtd,                    // monthly stays as-is
+      fixedCost: Math.round(src.fixedCost * months),
+      // Rate/average fields — carry over unchanged
+      leadCR: src.leadCR,
+      saleCR: src.saleCR,
+      avgSale: src.avgSale,
+      avgTxn: src.avgTxn,
+      gpPct: src.gpPct,
+      // Cumulative
+      capexYtd: Math.round(src.capexMtd * months),
+    };
+  }
+
+  return {
+    MTD: mtd,
+    QTD: isEmpty(periods.QTD) && !isEmpty(mtd) ? scale(mtd, monthInQuarter) : periods.QTD,
+    YTD: isEmpty(periods.YTD) && !isEmpty(mtd) ? scale(mtd, monthInYear) : periods.YTD,
   };
 }
 
@@ -2129,12 +2176,13 @@ export function DashboardClient({
       // Deep merge with defaults to fill any missing fields (prevents crashes
       // when DB data was saved with an older schema that didn't have all fields)
       const defaults = defaultKPI();
+      const rawPeriods = {
+        MTD: { ...defaults.periods.MTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.MTD as object } as PeriodRaw,
+        QTD: { ...defaults.periods.QTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.QTD as object } as PeriodRaw,
+        YTD: { ...defaults.periods.YTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.YTD as object } as PeriodRaw,
+      };
       const merged: WorkspaceKPI = {
-        periods: {
-          MTD: { ...defaults.periods.MTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.MTD as object },
-          QTD: { ...defaults.periods.QTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.QTD as object },
-          YTD: { ...defaults.periods.YTD, ...((savedKpis as Record<string, unknown>).periods as Record<string, unknown>)?.YTD as object },
-        },
+        periods: derivePeriods(rawPeriods),
         finance: { ...defaults.finance, ...(savedKpis as Record<string, unknown>).finance as object },
         marketing: ((savedKpis as Record<string, unknown>).marketing as Channel[]) ?? defaults.marketing,
         ops: { ...defaults.ops, ...(savedKpis as Record<string, unknown>).ops as object },
@@ -2144,7 +2192,7 @@ export function DashboardClient({
     } else {
       const local = loadKPILocal(workspaceId);
       if (local) {
-        setKpi(local);
+        setKpi({ ...local, periods: derivePeriods(local.periods) });
       } else {
         setIsDefaultData(true);
       }
