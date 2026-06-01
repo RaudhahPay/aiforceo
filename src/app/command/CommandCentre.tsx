@@ -60,7 +60,9 @@ export function CommandCentre({
     nps: ops?.nps ?? 0,
   };
 
-  const isNewUser = !hasBusinessProfile && !hasBrandVoice && healthData.sales === 0;
+  // Only show setup guide when nothing is configured yet
+  const setupComplete = hasBusinessProfile && hasBrandVoice && hasConnectors;
+  const showSetupBanner = !setupComplete && !hasBusinessProfile;
 
   return (
     <main style={{ background: "var(--bg)", minHeight: "100vh", padding: "20px 28px", overflow: "auto" }}>
@@ -87,8 +89,8 @@ export function CommandCentre({
         </div>
       </div>
 
-      {/* Welcome Guide for new users */}
-      {isNewUser && (
+      {/* Setup banner — only for truly new users with no business profile */}
+      {showSetupBanner && (
         <div style={{ marginBottom: 20 }}>
           <WelcomeGuide
             workspaceName={workspaceName}
