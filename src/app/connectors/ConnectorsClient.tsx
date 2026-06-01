@@ -25,7 +25,7 @@ const CONNECTOR_META = {
   google_sheets: {
     label: "Google Sheets",
     icon: "📊",
-    color: "#34A853",
+    color: "var(--success)",
     description: "Pull live data from your spreadsheets. Felix (CFO) can read your P&L, Eden (CEO) can track KPIs, Maya (CMO) can push content calendars.",
     agents: ["Felix · CFO", "Eden · CEO", "Maya · CMO"],
     setupNote: "Requires GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET in Cloudflare secrets."
@@ -33,7 +33,7 @@ const CONNECTOR_META = {
   quickbooks: {
     label: "QuickBooks",
     icon: "💰",
-    color: "#2CA01C",
+    color: "var(--success)",
     description: "Connect your accounting so Felix (CFO) can pull real P&L, cash flow, and expense data automatically — no copy-paste needed.",
     agents: ["Felix · CFO"],
     setupNote: "Requires QUICKBOOKS_CLIENT_ID + QUICKBOOKS_CLIENT_SECRET in Cloudflare secrets."
@@ -41,7 +41,7 @@ const CONNECTOR_META = {
   custom_api: {
     label: "Custom API",
     icon: "🔗",
-    color: "#7C3AED",
+    color: "var(--accent)",
     description: "Connect any REST API — your POS, CRM, inventory system, or internal tool. Your AI executives will be able to query it for context.",
     agents: ["All executives"],
     setupNote: null
@@ -49,7 +49,7 @@ const CONNECTOR_META = {
   whatsapp: {
     label: "WhatsApp",
     icon: "💬",
-    color: "#25D366",
+    color: "var(--success)",
     description: "Chat with your AI C-Suite directly from WhatsApp. Ask Eden for your morning brief, Owen for an SOP, or Aria to pull status from all 5 execs.",
     agents: ["All executives"],
     setupNote: "Coming in v0.3 — WhatsApp Business API setup required."
@@ -57,7 +57,7 @@ const CONNECTOR_META = {
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const colour = status === "active" ? "#22c55e" : status === "error" ? "#ef4444" : "#94a3b8";
+  const colour = status === "active" ? "var(--success)" : status === "error" ? "var(--red)" : "var(--muted)";
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: colour }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: colour, display: "inline-block" }} />
@@ -227,7 +227,7 @@ function OAuthCard({
 
       {/* Error */}
       {err && (
-        <div style={{ background: "rgba(229,84,75,0.1)", border: "1px solid rgba(229,84,75,0.3)", borderRadius: 8, padding: "10px 14px" }}>
+        <div style={{ background: "rgba(229,84,75,0.08)", border: "1px solid rgba(229,84,75,0.3)", borderRadius: 8, padding: "10px 14px" }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--red)", margin: 0 }}>⚠ {err}</p>
           {meta.setupNote && <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{meta.setupNote}</p>}
         </div>
@@ -235,7 +235,7 @@ function OAuthCard({
 
       {/* Sheet config needed after OAuth */}
       {needsSheetConfig && (
-        <div style={{ background: "rgba(52,168,83,0.06)", border: "1px solid rgba(52,168,83,0.25)", borderRadius: 10, padding: "14px 16px" }}>
+        <div style={{ background: "rgba(63,185,132,0.06)", border: "1px solid rgba(63,185,132,0.25)", borderRadius: 10, padding: "14px 16px" }}>
           <SheetConfigForm onSaved={() => setSheetSaved(true)} />
         </div>
       )}
@@ -244,7 +244,7 @@ function OAuthCard({
       {connector && !needsSheetConfig && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {sheetUrl && (
-            <div style={{ background: "rgba(52,168,83,0.08)", border: "1px solid rgba(52,168,83,0.25)", borderRadius: 8, padding: "10px 14px" }}>
+            <div style={{ background: "rgba(63,185,132,0.08)", border: "1px solid rgba(63,185,132,0.25)", borderRadius: 8, padding: "10px 14px" }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: "var(--success)", margin: "0 0 2px" }}>
                 📊 {sheetName || "Sheet"} connected
               </p>
@@ -271,7 +271,7 @@ function OAuthCard({
       {/* Not connected */}
       {!connector && (
         <button onClick={connect} disabled={loading} className="btn text-sm"
-          style={{ background: meta.color, color: "#fff", border: "none", opacity: loading ? 0.6 : 1 }}>
+          style={{ background: meta.color, color: "var(--bg)", border: "none", opacity: loading ? 0.6 : 1 }}>
           {loading ? "Redirecting…" : `Connect ${meta.label}`}
         </button>
       )}
@@ -330,7 +330,7 @@ function CustomApiCard({
         </div>
         <span style={{
           fontSize: 10, fontWeight: 700, padding: "3px 8px",
-          borderRadius: 6, background: "#7C3AED18", color: "#7C3AED"
+          borderRadius: 6, background: "rgba(197,165,114,0.1)", color: "var(--accent)"
         }}>REST API</span>
       </div>
 
@@ -343,7 +343,7 @@ function CustomApiCard({
             <span className="text-[var(--muted)] ml-2">{connector.metadata.endpoint}</span>
           </div>
           <button className="btn btn-ghost text-xs" onClick={() => setOpen(true)}>Edit</button>
-          <button className="btn btn-ghost text-xs" style={{ color: "#dc2626" }}
+          <button className="btn btn-ghost text-xs" style={{ color: "var(--red)" }}
             onClick={() => onDisconnect(connector.id)}>Remove</button>
         </div>
       )}
@@ -399,12 +399,12 @@ function CustomApiCard({
               className="input text-sm resize-none" />
           </div>
 
-          {err && <p className="text-sm font-semibold" style={{ color: "#dc2626" }}>⚠ {err}</p>}
-          {success && <p className="text-sm font-semibold" style={{ color: "#22c55e" }}>✓ Connector saved</p>}
+          {err && <p className="text-sm font-semibold" style={{ color: "var(--red)" }}>⚠ {err}</p>}
+          {success && <p className="text-sm font-semibold" style={{ color: "var(--success)" }}>✓ Connector saved</p>}
 
           <div className="flex gap-2">
             <button type="submit" disabled={isPending} className="btn text-sm"
-              style={{ background: "#7C3AED", color: "#fff", border: "none", opacity: isPending ? 0.6 : 1 }}>
+              style={{ background: "var(--accent)", color: "var(--bg)", border: "none", opacity: isPending ? 0.6 : 1 }}>
               {isPending ? "Saving…" : "Save connector"}
             </button>
             {connector && (
@@ -426,7 +426,7 @@ function ComingSoonCard({ provider }: { provider: "whatsapp" }) {
           <span style={{ fontSize: 28 }}>{meta.icon}</span>
           <div>
             <h3 className="font-bold text-base">{meta.label}</h3>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8" }}>Coming in v0.3</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)" }}>Coming in v0.3</span>
           </div>
         </div>
       </div>
@@ -451,8 +451,8 @@ export function ConnectorsClient({ connectors: initial, flashMsg }: Props) {
   return (
     <div className="flex flex-col gap-6">
       {flashMsg && (
-        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px" }}>
-          <p className="text-sm font-semibold" style={{ color: "#16a34a" }}>✓ {flashMsg}</p>
+        <div style={{ background: "rgba(63,185,132,0.08)", border: "1px solid rgba(63,185,132,0.2)", borderRadius: 10, padding: "12px 16px" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--success)" }}>✓ {flashMsg}</p>
         </div>
       )}
 
