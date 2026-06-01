@@ -5,10 +5,6 @@ import Link from "next/link";
 import type { AgentRole } from "@/lib/prompts";
 import { saveKPIs } from "@/server/actions/dashboard";
 import { switchWorkspace } from "@/server/actions/workspaces";
-// OfficeView and WelcomeGuide temporarily disabled — caused 500 on Cloudflare Workers
-// import dynamic from "next/dynamic";
-// const OfficeView = dynamic(() => import("@/app/_components/OfficeView").then(m => m.OfficeView), { ssr: false });
-// const WelcomeGuide = dynamic(() => import("@/app/_components/WelcomeGuide").then(m => m.WelcomeGuide), { ssr: false });
 
 /* ─── TIER COLOURS (matches WorkspaceSwitcher) ───────────────── */
 const TIER_COLOR: Record<string, string> = {
@@ -136,35 +132,105 @@ function compute(r: PeriodRaw): PeriodData {
 
 /* ─── DEFAULT KPI DATA ───────────────────────────────────────── */
 function defaultKPI(): WorkspaceKPI {
-  // Start blank — no seeded data. Aria guides the user to fill these in.
-  const blankPeriod: PeriodRaw = {
-    reach: 0, leadCR: 0, saleCR: 0, avgSale: 0, avgTxn: 0,
-    gpPct: 0, opex: 0, capexMtd: 0, capexYtd: 0, fixedCost: 0,
-  };
   return {
-    periods: { MTD: { ...blankPeriod }, QTD: { ...blankPeriod }, YTD: { ...blankPeriod } },
-    finance: {
-      cashIn: 0, cashOut: 0, cashBalance: 0,
-      ar: 0, ap: 0, arOverdue: 0,
-      assets: 0, liabilities: 0, equity: 0,
-      debtPayment: 0, noi: 0, inventory: 0, runwayMonths: 0,
+    periods: {
+      MTD: {
+        reach: 5000,
+        leadCR: 0.18,
+        saleCR: 0.3,
+        avgSale: 500,
+        avgTxn: 1.5,
+        gpPct: 0.55,
+        opex: 35000,
+        capexMtd: 8000,
+        capexYtd: 48000,
+        fixedCost: 25000,
+      },
+      QTD: {
+        reach: 14500,
+        leadCR: 0.18,
+        saleCR: 0.29,
+        avgSale: 490,
+        avgTxn: 1.5,
+        gpPct: 0.54,
+        opex: 103000,
+        capexMtd: 22000,
+        capexYtd: 48000,
+        fixedCost: 75000,
+      },
+      YTD: {
+        reach: 58000,
+        leadCR: 0.18,
+        saleCR: 0.29,
+        avgSale: 485,
+        avgTxn: 1.5,
+        gpPct: 0.54,
+        opex: 410000,
+        capexMtd: 48000,
+        capexYtd: 48000,
+        fixedCost: 300000,
+      },
     },
-    marketing: [],
+    finance: {
+      cashIn: 95000,
+      cashOut: 78000,
+      cashBalance: 240000,
+      ar: 42000,
+      ap: 28000,
+      arOverdue: 9000,
+      assets: 620000,
+      liabilities: 380000,
+      equity: 240000,
+      debtPayment: 12000,
+      noi: 17000,
+      inventory: 55000,
+      runwayMonths: 3.8,
+    },
+    marketing: [
+      {
+        name: "Social Media",
+        prospects: 420,
+        cost: 4800,
+        customers: 82,
+        works: true,
+      },
+      {
+        name: "Website / SEO",
+        prospects: 280,
+        cost: 1500,
+        customers: 68,
+        works: true,
+      },
+      {
+        name: "Paid Ads",
+        prospects: 310,
+        cost: 9200,
+        customers: 38,
+        works: false,
+      },
+      {
+        name: "Referral",
+        prospects: 150,
+        cost: 800,
+        customers: 72,
+        works: true,
+      },
+    ],
     ops: {
-      headcount: 0,
-      openRoles: 0,
-      attrition: 0,
-      eNPS: 0,
-      productivityPerHead: 0,
-      trainingHrs: 0,
-      customers: 0,
-      repeatRate: 0,
-      csat: 0,
-      nps: 0,
-      complaints: 0,
-      resolved: 0,
-      onTimeDelivery: 0,
-      capacityUsed: 0,
+      headcount: 18,
+      openRoles: 3,
+      attrition: 0.07,
+      eNPS: 34,
+      productivityPerHead: 11500,
+      trainingHrs: 5.4,
+      customers: 420,
+      repeatRate: 0.38,
+      csat: 4.2,
+      nps: 46,
+      complaints: 8,
+      resolved: 7,
+      onTimeDelivery: 0.91,
+      capacityUsed: 0.74,
     },
   };
 }
@@ -2097,12 +2163,6 @@ export function DashboardClient({
   connectedSources,
   groupKpis = [],
   todayBriefContent = null,
-  ownerInitial,
-  ownerName,
-  hasBusinessProfile = false,
-  hasBrandVoice = false,
-  hasFinancials = false,
-  hasConnectors = false,
 }: {
   workspaceId: string;
   workspaceName: string;
@@ -2113,15 +2173,9 @@ export function DashboardClient({
   connectedSources: number;
   groupKpis?: GroupEntry[];
   todayBriefContent?: string | null;
-  ownerInitial?: string;
-  ownerName?: string;
-  hasBusinessProfile?: boolean;
-  hasBrandVoice?: boolean;
-  hasFinancials?: boolean;
-  hasConnectors?: boolean;
 }) {
   const [view, setView] = useState<
-    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP" | "OFFICE"
+    "CEO" | "SALES" | "MARKETING" | "CFO" | "COO" | "GROUP"
   >("CEO");
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
   const [kpi, setKpi] = useState<WorkspaceKPI>(defaultKPI);
@@ -2166,7 +2220,6 @@ export function DashboardClient({
     ...(groupKpis.length > 1
       ? ([["GROUP", "🏢 Group View"]] as [string, string][])
       : []),
-    ["OFFICE", "🏢 Office View"],
   ];
 
   return (
@@ -2346,9 +2399,9 @@ export function DashboardClient({
         >
           <p style={{ margin: 0, fontSize: 13, color: C.text }}>
             <span style={{ color: C.gold, fontWeight: 700 }}>
-              👋 Your dashboard is ready for real data.
+              👋 These are sample numbers.
             </span>{" "}
-            Chat with <strong>Aria</strong> and share a screenshot of your P&L — she&apos;ll fill this in for you. Or click <strong>Edit KPIs</strong> to enter manually.
+            Click <strong>Edit KPIs</strong> to enter your actual business data.
           </p>
           <button
             onClick={() => setEditOpen(true)}
@@ -2389,14 +2442,6 @@ export function DashboardClient({
       {view === "COO" && <COOView o={kpi.ops} accent={accent} />}
       {view === "GROUP" && groupKpis.length > 1 && (
         <GroupView entries={groupKpis} activeId={workspaceId} />
-      )}
-      {/* OFFICE view temporarily disabled — investigating 500 on Cloudflare */}
-      {view === "OFFICE" && (
-        <div style={{ padding: 40, textAlign: "center" }}>
-          <p style={{ fontSize: 32, marginBottom: 12 }}>🏢</p>
-          <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700 }}>Office View</h3>
-          <p style={{ fontSize: 13, color: "var(--muted)" }}>Coming back shortly — switch to CEO Command Centre above.</p>
-        </div>
       )}
 
       {/* FOOTER */}
