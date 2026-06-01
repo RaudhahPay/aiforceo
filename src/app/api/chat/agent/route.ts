@@ -38,7 +38,7 @@ const RequestSchema = z.object({
     .array(
       z.object({
         role:        z.enum(["user", "assistant"]),
-        content:     z.string().min(0).max(50000), // assistant messages can be very long (KPI tables, reports)
+        content:     z.string().min(0).max(30000), // assistant messages can be long (KPI tables, reports)
         attachments: z.array(AttachmentSchema).max(5).optional(),
       }),
     )
