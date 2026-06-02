@@ -18,6 +18,7 @@ type ActivePage =
   | "operations"
   | "customers"
   | "autopilot"
+  | "portfolio"
   | "tasks"
   | "alerts"
   | "settings"
@@ -146,6 +147,24 @@ export function Sidebar({
             <Item href="/command" active={active === "command"} icon="⌂">
               Command Centre
             </Item>
+            {allWorkspaces.length > 1 && (
+              <Item href="/portfolio" active={active === "portfolio"} icon="📊">
+                Portfolio
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: D.gold,
+                    color: D.bg,
+                    borderRadius: 20,
+                    padding: "1px 7px",
+                  }}
+                >
+                  {allWorkspaces.length}
+                </span>
+              </Item>
+            )}
             <Item href="/agents" active={active === "agents"} icon="👥">
               AI Executives
             </Item>

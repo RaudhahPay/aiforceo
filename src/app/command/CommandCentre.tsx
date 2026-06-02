@@ -35,13 +35,14 @@ type Props = {
   hasConnectors: boolean;
   memories: Array<{ category: string; content: string; source_agent: string | null }>;
   tasks: Task[];
+  workspaceCount?: number;
 };
 
 export function CommandCentre({
   workspaceName, workspaceId, agentStats, todayBriefContent,
   savedKpis, remaining, quota, ownerInitial, ownerName,
   hasBusinessProfile, hasBrandVoice, hasFinancials, hasConnectors,
-  memories, tasks,
+  memories, tasks, workspaceCount = 1,
 }: Props) {
   // Extract KPI values for health scores
   const kpi = savedKpis as Record<string, unknown> | null;
@@ -84,7 +85,33 @@ export function CommandCentre({
             {workspaceName}
           </h1>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {workspaceCount > 1 && (
+            <Link
+              href="/portfolio"
+              className="btn btn-ghost text-sm"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              📊 Portfolio
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  background: "#c5a572",
+                  color: "#0a0e1a",
+                  borderRadius: 20,
+                  padding: "1px 6px",
+                }}
+              >
+                {workspaceCount}
+              </span>
+            </Link>
+          )}
           <Link href="/connectors" className="btn btn-ghost text-sm" style={{ textDecoration: "none" }}>
             🔗 Connect Data
           </Link>

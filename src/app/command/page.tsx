@@ -139,6 +139,7 @@ export default async function CommandPage() {
         hasConnectors={hasConnectors}
         memories={(memories ?? []) as Array<{ category: string; content: string; source_agent: string | null }>}
         tasks={tasks}
+        workspaceCount={allWorkspaces.length}
       />
     </div>
   );
