@@ -26,6 +26,7 @@ export default async function MarketingPage() {
         kpi={data.kpi}
         monthlyRecords={data.monthlyRecords}
         defaultMonth={data.selectedMonth}
+        industry={data.industry}
         role="cmo"
         agent={data.agent}
         workspaceName={data.workspace.name}

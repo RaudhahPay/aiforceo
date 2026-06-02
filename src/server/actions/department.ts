@@ -28,6 +28,7 @@ export type DepartmentData = {
   monthlyRecords: MonthlyKPIRecord[];
   momTrend: MoMTrend | null;
   selectedMonth: string;
+  industry: string | null;
   // Chat
   conversationId: string;
   initialMessages: { role: "user" | "assistant"; content: string; id?: string }[];
@@ -54,6 +55,14 @@ export async function loadDepartmentData(
 
   // Conversation: find or create
   const admin = createSupabaseAdminClient();
+
+  // Industry from business_profiles
+  const { data: bizProfile } = await admin
+    .from("business_profiles")
+    .select("industry")
+    .eq("workspace_id", workspace.id)
+    .maybeSingle();
+  const industry: string | null = bizProfile?.industry ?? null;
 
   let { data: conversation } = await admin
     .from("conversations")
@@ -111,6 +120,7 @@ export async function loadDepartmentData(
     monthlyRecords,
     momTrend,
     selectedMonth: month,
+    industry,
     conversationId: conversation.id,
     initialMessages: (messages ?? []).map((m) => ({
       role: m.role as "user" | "assistant",

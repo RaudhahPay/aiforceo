@@ -1,15 +1,25 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { compute, C } from "@/app/_components/dashboard-primitives";
 import { DepartmentWorkspace, type DepartmentConfig, type QuickAction } from "@/app/_components/DepartmentWorkspace";
 import { SalesKPIView } from "@/app/_components/views/SalesKPIView";
 import { MarketingKPIView } from "@/app/_components/views/MarketingKPIView";
 import { FinanceKPIView } from "@/app/_components/views/FinanceKPIView";
 import { OperationsKPIView } from "@/app/_components/views/OperationsKPIView";
+import { AnomalyBanner } from "@/app/_components/AnomalyBanner";
+import { BenchmarkWidget } from "@/app/_components/BenchmarkWidget";
+import { ProjectionCard } from "@/app/_components/ProjectionCard";
 import type { WorkspaceKPI, MonthlyKPIRecord, PeriodRaw } from "@/lib/kpi/types";
 import { ZERO_PERIOD, ZERO_FINANCE, ZERO_OPS } from "@/lib/kpi/types";
-import { buildKPIView } from "@/lib/kpi/rollup";
+import { buildKPIView, detectAnomalies } from "@/lib/kpi/rollup";
+
+// Recharts components need SSR disabled
+const RevenueTrendChart = dynamic(
+  () => import("@/app/_components/charts/RevenueTrendChart").then((m) => ({ default: m.RevenueTrendChart })),
+  { ssr: false }
+);
 
 type DepartmentType = "sales" | "marketing" | "finance" | "operations";
 
@@ -58,11 +68,31 @@ type PastConv = { id: string; title: string; updatedAt: string };
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function formatMonth(m: string) { const [y, mo] = m.split("-"); return `${MONTH_NAMES[parseInt(mo!, 10) - 1]} ${y}`; }
 
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        color: "var(--muted)",
+        padding: "12px 0 6px",
+        borderTop: "1px solid var(--line)",
+        marginTop: 8,
+      }}
+    >
+      {title}
+    </div>
+  );
+}
+
 export function DepartmentPage({
   type,
   kpi: kpiProp,
   monthlyRecords = [],
   defaultMonth,
+  industry = null,
   // Chat data
   role,
   agent,
@@ -75,6 +105,7 @@ export function DepartmentPage({
   kpi: WorkspaceKPI | null;
   monthlyRecords?: MonthlyKPIRecord[];
   defaultMonth?: string;
+  industry?: string | null;
   role: string;
   agent: { name: string; title: string; tag: string; gradient: readonly [string, string] };
   workspaceName: string;
@@ -103,8 +134,18 @@ export function DepartmentPage({
     return kpiProp ?? defaultKPI();
   }, [monthlyRecords, selectedMonth, kpiProp]);
 
+  // Detect anomalies for selected month
+  const anomalies = useMemo(() => {
+    if (monthlyRecords.length === 0) return [];
+    return detectAnomalies(monthlyRecords, selectedMonth);
+  }, [monthlyRecords, selectedMonth]);
+
   const d = useMemo(() => compute(kpi.periods[period] as PeriodRaw), [kpi, period]);
   const dept = DEPARTMENT_CONFIG[type];
+
+  const showTrendChart = (type === "sales" || type === "marketing" || type === "finance") && monthlyRecords.length >= 2;
+  const showProjection = (type === "sales" || type === "finance") && monthlyRecords.length >= 2;
+  const showBenchmark = !!industry && !!kpi;
 
   const kpiViewNode = useMemo(() => {
     switch (type) {
@@ -139,17 +180,78 @@ export function DepartmentPage({
     </div>
   ) : null;
 
-  const kpiWithMonthPicker = (
+  const chartColor =
+    type === "sales" ? C.gold :
+    type === "marketing" ? C.blue :
+    type === "finance" ? C.green :
+    C.copper;
+
+  const analyticsNode = (
+    <>
+      {/* Anomaly alerts */}
+      {anomalies.length > 0 && (
+        <>
+          <SectionHeader title="Anomaly Alerts" />
+          <AnomalyBanner anomalies={anomalies} />
+        </>
+      )}
+
+      {/* Revenue trend chart */}
+      {showTrendChart && (
+        <>
+          <SectionHeader title="Revenue Trend" />
+          <div
+            style={{
+              borderRadius: 8,
+              background: "var(--panel2)",
+              border: "1px solid var(--line)",
+              padding: "12px 8px 8px",
+              marginBottom: 8,
+            }}
+          >
+            <RevenueTrendChart
+              records={monthlyRecords}
+              height={160}
+              color={chartColor}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Projections */}
+      {showProjection && (
+        <>
+          <SectionHeader title="Projections" />
+          <ProjectionCard
+            records={monthlyRecords}
+            selectedMonth={selectedMonth}
+            showFinance={type === "finance"}
+          />
+        </>
+      )}
+
+      {/* Industry benchmarks */}
+      {showBenchmark && (
+        <>
+          <SectionHeader title="Industry Benchmarks" />
+          <BenchmarkWidget industry={industry!} kpi={kpi} />
+        </>
+      )}
+    </>
+  );
+
+  const kpiWithExtras = (
     <>
       {monthPickerNode}
       {kpiViewNode}
+      {analyticsNode}
     </>
   );
 
   return (
     <DepartmentWorkspace
       department={dept}
-      kpiView={kpiWithMonthPicker}
+      kpiView={kpiWithExtras}
       period={period}
       onPeriodChange={setPeriod}
       role={role}
