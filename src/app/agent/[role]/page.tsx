@@ -14,9 +14,9 @@ export default async function AgentPage({
   searchParams,
 }: {
   params: Promise<{ role: string }>;
-  searchParams: Promise<{ conv?: string }>;
+  searchParams: Promise<{ conv?: string; task?: string }>;
 }) {
-  const [{ role: rawRole }, { conv: requestedConvId }] = await Promise.all([params, searchParams]);
+  const [{ role: rawRole }, { conv: requestedConvId, task: taskPrompt }] = await Promise.all([params, searchParams]);
   const role = rawRole.toLowerCase();
   const isBuiltin = BUILTIN_ROLES.includes(role as AgentRole);
   const isCustom  = UUID_RE.test(role);
@@ -134,6 +134,7 @@ export default async function AgentPage({
           title: c.title ?? "Chat",
           updatedAt: c.updated_at,
         }))}
+        autoSendPrompt={taskPrompt ? decodeURIComponent(taskPrompt) : undefined}
       />
     </div>
   );

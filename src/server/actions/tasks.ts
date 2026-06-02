@@ -79,6 +79,7 @@ export async function createTask(data: {
   priority?: TaskPriority;
   dueDate?: string;
   sourceAgent?: string;
+  assignedAgent?: string; // which agent should handle this task
 }): Promise<Task> {
   const { workspace } = await requireWorkspaceOwner();
   const admin = createSupabaseAdminClient();
@@ -92,7 +93,8 @@ export async function createTask(data: {
       type: data.type,
       priority: data.priority ?? 2,
       due_date: data.dueDate ?? null,
-      source_agent: data.sourceAgent ?? null,
+      // source_agent holds either the auto-extracting agent OR the manually assigned agent
+      source_agent: data.assignedAgent ?? data.sourceAgent ?? null,
     })
     .select("*")
     .single();

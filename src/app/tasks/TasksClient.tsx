@@ -1,8 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createTask, updateTaskStatus, deleteTask } from "@/server/actions/tasks";
 import type { Task, TaskType, TaskStatus, TaskPriority } from "@/server/actions/tasks";
+
+// Maps agent role → their name + what they handle
+const AGENT_OPTIONS = [
+  { value: "aria", label: "Aria — Chief of Staff", description: "Coordination, planning, delegation" },
+  { value: "cmo",  label: "Maya — CMO",            description: "Marketing, content, campaigns" },
+  { value: "cfo",  label: "Felix — CFO",            description: "Finance, P&L, cash flow" },
+  { value: "coo",  label: "Owen — COO",             description: "Operations, processes, team" },
+  { value: "ceo",  label: "Eden — CEO",             description: "Strategy, decisions, growth" },
+  { value: "cto",  label: "Tariq — CTO",            description: "Tech, automation, systems" },
+];
 
 // ── Design tokens (match dark theme) ──────────────────────────────────────────
 const D = {
@@ -81,10 +92,20 @@ function TaskCard({
   onDelete: (id: string) => void;
   isPending: boolean;
 }) {
+  const router = useRouter();
   const typeConfig = TYPE_CONFIG[task.type] ?? TYPE_CONFIG.action;
   const agentMeta = task.source_agent ? AGENT_INITIAL[task.source_agent] : null;
   const dueInfo = formatDueDate(task.due_date);
   const isActive = task.status === "open" || task.status === "in_progress";
+
+  function handleStart() {
+    // Mark in progress first, then navigate to the agent with task context
+    onStatusChange(task.id, "in_progress");
+    if (task.source_agent) {
+      const prompt = encodeURIComponent(`Task: ${task.title}${task.description ? `\n\nContext: ${task.description}` : ""}\n\nPlease help me work on this.`);
+      router.push(`/agent/${task.source_agent}?task=${prompt}`);
+    }
+  }
 
   return (
     <div
@@ -190,8 +211,9 @@ function TaskCard({
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             {task.status === "open" && (
               <button
-                onClick={() => onStatusChange(task.id, "in_progress")}
+                onClick={handleStart}
                 disabled={isPending}
+                title={task.source_agent ? `Open with ${task.source_agent.toUpperCase()}` : "Mark as in progress"}
                 style={{
                   padding: "4px 9px",
                   borderRadius: 7,
@@ -201,9 +223,12 @@ function TaskCard({
                   background: "rgba(59,130,246,0.12)",
                   border: "1px solid rgba(59,130,246,0.3)",
                   color: "#3b82f6",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                Start
+                {task.source_agent ? `▶ Open with ${task.source_agent.toUpperCase()}` : "▶ Start"}
               </button>
             )}
             <button
@@ -277,6 +302,7 @@ function AddTaskForm({
   const [type, setType] = useState<TaskType>("action");
   const [priority, setPriority] = useState<TaskPriority>(2);
   const [dueDate, setDueDate] = useState("");
+  const [assignedAgent, setAssignedAgent] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
@@ -292,6 +318,7 @@ function AddTaskForm({
           type,
           priority,
           dueDate: dueDate || undefined,
+          assignedAgent: assignedAgent || undefined,
         });
         onCreated(task);
         onClose();
@@ -367,6 +394,31 @@ function AddTaskForm({
               boxSizing: "border-box",
             }}
           />
+        </div>
+
+        {/* Assign to Agent */}
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 600, color: D.muted, display: "block", marginBottom: 5 }}>
+            Assign to AI Executive
+          </label>
+          <select
+            value={assignedAgent}
+            onChange={(e) => setAssignedAgent(e.target.value)}
+            style={{
+              width: "100%", padding: "9px 12px", borderRadius: 9,
+              border: `1px solid ${D.line}`, background: D.panel2, color: D.text, fontSize: 13,
+            }}
+          >
+            <option value="">— Unassigned —</option>
+            {AGENT_OPTIONS.map((a) => (
+              <option key={a.value} value={a.value}>{a.label}</option>
+            ))}
+          </select>
+          {assignedAgent && (
+            <p style={{ margin: "4px 0 0", fontSize: 10, color: D.muted }}>
+              ▶ Start will open this task in {AGENT_OPTIONS.find(a => a.value === assignedAgent)?.label.split(" — ")[0]}&apos;s chat
+            </p>
+          )}
         </div>
 
         {/* Type + Priority row */}
