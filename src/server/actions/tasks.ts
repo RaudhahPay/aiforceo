@@ -147,6 +147,42 @@ export async function updateTaskStatus(
 }
 
 /**
+ * Update task fields (title, description, assigned agent, due date, priority).
+ */
+export async function updateTask(
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    assignedAgent?: string | null;
+    dueDate?: string | null;
+    priority?: TaskPriority;
+    type?: TaskType;
+  },
+): Promise<void> {
+  const { workspace } = await requireWorkspaceOwner();
+  const admin = createSupabaseAdminClient();
+
+  const { data: existing } = await admin
+    .from("tasks").select("workspace_id").eq("id", id).maybeSingle();
+  if (!existing || existing.workspace_id !== workspace.id) throw new Error("Task not found");
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (data.title !== undefined) updates.title = data.title;
+  if (data.description !== undefined) updates.description = data.description || null;
+  if (data.assignedAgent !== undefined) updates.source_agent = data.assignedAgent || null;
+  if (data.dueDate !== undefined) updates.due_date = data.dueDate || null;
+  if (data.priority !== undefined) updates.priority = data.priority;
+  if (data.type !== undefined) updates.type = data.type;
+
+  const { error } = await admin.from("tasks").update(updates).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/tasks");
+  revalidatePath("/command");
+}
+
+/**
  * Hard delete a task.
  */
 export async function deleteTask(id: string): Promise<void> {

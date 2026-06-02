@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createTask, updateTaskStatus, deleteTask } from "@/server/actions/tasks";
+import { createTask, updateTaskStatus, updateTask, deleteTask } from "@/server/actions/tasks";
 import type { Task, TaskType, TaskStatus, TaskPriority } from "@/server/actions/tasks";
 
 // Maps agent role → their name + what they handle
@@ -85,26 +85,47 @@ function TaskCard({
   task,
   onStatusChange,
   onDelete,
+  onUpdated,
   isPending,
 }: {
   task: Task;
   onStatusChange: (id: string, status: TaskStatus) => void;
   onDelete: (id: string) => void;
+  onUpdated: (updated: Task) => void;
   isPending: boolean;
 }) {
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAgent, setEditAgent] = useState(task.source_agent ?? "");
+  const [editTitle, setEditTitle] = useState(task.title);
+  const [editDue, setEditDue] = useState(task.due_date ?? "");
+  const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority);
+  const [savePending, startSave] = useTransition();
+
   const typeConfig = TYPE_CONFIG[task.type] ?? TYPE_CONFIG.action;
   const agentMeta = task.source_agent ? AGENT_INITIAL[task.source_agent] : null;
   const dueInfo = formatDueDate(task.due_date);
   const isActive = task.status === "open" || task.status === "in_progress";
 
   function handleStart() {
-    // Mark in progress first, then navigate to the agent with task context
     onStatusChange(task.id, "in_progress");
     if (task.source_agent) {
       const prompt = encodeURIComponent(`Task: ${task.title}${task.description ? `\n\nContext: ${task.description}` : ""}\n\nPlease help me work on this.`);
       router.push(`/agent/${task.source_agent}?task=${prompt}`);
     }
+  }
+
+  function handleSaveEdit() {
+    startSave(async () => {
+      await updateTask(task.id, {
+        title: editTitle.trim(),
+        assignedAgent: editAgent || null,
+        dueDate: editDue || null,
+        priority: editPriority,
+      });
+      onUpdated({ ...task, title: editTitle.trim(), source_agent: editAgent || null, due_date: editDue || null, priority: editPriority });
+      setIsEditing(false);
+    });
   }
 
   return (
@@ -251,18 +272,64 @@ function TaskCard({
               onClick={() => onStatusChange(task.id, "dismissed")}
               disabled={isPending}
               style={{
-                padding: "4px 9px",
-                borderRadius: 7,
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: "pointer",
-                background: "rgba(229,84,75,0.08)",
-                border: "1px solid rgba(229,84,75,0.2)",
-                color: "#e5544b",
+                padding: "4px 9px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                cursor: "pointer", background: "rgba(229,84,75,0.08)",
+                border: "1px solid rgba(229,84,75,0.2)", color: "#e5544b",
               }}
-            >
-              ✗ Dismiss
-            </button>
+            >✗ Dismiss</button>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              style={{
+                padding: "4px 9px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                cursor: "pointer", background: "rgba(133,151,184,0.08)",
+                border: "1px solid rgba(133,151,184,0.2)", color: D.muted,
+              }}
+            >✎ Edit</button>
+          </div>
+        )}
+
+        {/* Inline edit form */}
+        {isEditing && (
+          <div style={{ borderTop: `1px solid ${D.line}`, paddingTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div>
+              <label style={{ fontSize: 10, fontWeight: 600, color: D.muted, display: "block", marginBottom: 3 }}>Title</label>
+              <input value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                style={{ width: "100%", padding: "7px 10px", borderRadius: 7, border: `1px solid ${D.line}`, background: D.panel, color: D.text, fontSize: 12, boxSizing: "border-box" }} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div>
+                <label style={{ fontSize: 10, fontWeight: 600, color: D.muted, display: "block", marginBottom: 3 }}>Assign to Agent</label>
+                <select value={editAgent} onChange={e => setEditAgent(e.target.value)}
+                  style={{ width: "100%", padding: "7px 10px", borderRadius: 7, border: `1px solid ${D.line}`, background: D.panel, color: D.text, fontSize: 12 }}>
+                  <option value="">— Unassigned —</option>
+                  {AGENT_OPTIONS.map(a => <option key={a.value} value={a.value}>{a.label.split(" — ")[0]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 10, fontWeight: 600, color: D.muted, display: "block", marginBottom: 3 }}>Priority</label>
+                <select value={editPriority} onChange={e => setEditPriority(Number(e.target.value) as TaskPriority)}
+                  style={{ width: "100%", padding: "7px 10px", borderRadius: 7, border: `1px solid ${D.line}`, background: D.panel, color: D.text, fontSize: 12 }}>
+                  <option value={3}>High</option>
+                  <option value={2}>Medium</option>
+                  <option value={1}>Low</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: 10, fontWeight: 600, color: D.muted, display: "block", marginBottom: 3 }}>Due Date</label>
+              <input type="date" value={editDue} onChange={e => setEditDue(e.target.value)}
+                style={{ padding: "7px 10px", borderRadius: 7, border: `1px solid ${D.line}`, background: D.panel, color: D.text, fontSize: 12 }} />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleSaveEdit} disabled={savePending}
+                style={{ padding: "6px 14px", borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: "pointer", background: "var(--accent)", color: "#0a0e1a", border: "none" }}>
+                {savePending ? "Saving…" : "✓ Save"}
+              </button>
+              <button onClick={() => setIsEditing(false)}
+                style={{ padding: "6px 12px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: "pointer", background: "transparent", color: D.muted, border: `1px solid ${D.line}` }}>
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
@@ -544,12 +611,14 @@ function PrioritySection({
   tasks,
   onStatusChange,
   onDelete,
+  onUpdated,
   pendingIds,
 }: {
   priority: 1 | 2 | 3;
   tasks: Task[];
   onStatusChange: (id: string, status: TaskStatus) => void;
   onDelete: (id: string) => void;
+  onUpdated: (updated: Task) => void;
   pendingIds: Set<string>;
 }) {
   if (tasks.length === 0) return null;
@@ -587,6 +656,7 @@ function PrioritySection({
             task={task}
             onStatusChange={onStatusChange}
             onDelete={onDelete}
+            onUpdated={onUpdated}
             isPending={pendingIds.has(task.id)}
           />
         ))}
@@ -657,6 +727,10 @@ export function TasksClient({ initialTasks }: { initialTasks: Task[] }) {
         });
       }
     });
+  }
+
+  function handleUpdated(updated: Task) {
+    setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t));
   }
 
   function handleCreated(task: Task) {
@@ -815,6 +889,7 @@ export function TasksClient({ initialTasks }: { initialTasks: Task[] }) {
               tasks={byPriority(3)}
               onStatusChange={handleStatusChange}
               onDelete={handleDelete}
+              onUpdated={handleUpdated}
               pendingIds={pendingIds}
             />
             <PrioritySection
@@ -822,6 +897,7 @@ export function TasksClient({ initialTasks }: { initialTasks: Task[] }) {
               tasks={byPriority(2)}
               onStatusChange={handleStatusChange}
               onDelete={handleDelete}
+              onUpdated={handleUpdated}
               pendingIds={pendingIds}
             />
             <PrioritySection
@@ -829,6 +905,7 @@ export function TasksClient({ initialTasks }: { initialTasks: Task[] }) {
               tasks={byPriority(1)}
               onStatusChange={handleStatusChange}
               onDelete={handleDelete}
+              onUpdated={handleUpdated}
               pendingIds={pendingIds}
             />
           </>
