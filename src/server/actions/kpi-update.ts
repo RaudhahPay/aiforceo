@@ -6,6 +6,7 @@ import { getCurrentWorkspace } from "@/lib/workspace";
 import { revalidatePath } from "next/cache";
 import { ZERO_PERIOD, ZERO_FINANCE, ZERO_OPS } from "@/lib/kpi/types";
 import type { Channel } from "@/lib/kpi/types";
+import { logAudit } from "@/lib/audit";
 
 export type KPIUpdatePayload = {
   // Any subset of the WorkspaceKPI fields — only updates what's provided
@@ -164,6 +165,19 @@ export async function mergeKPIUpdate(
     );
 
   if (error) return { ok: false, error: error.message };
+
+  // Fire-and-forget audit log
+  void logAudit({
+    workspaceId: ctx.workspace.id,
+    actorId: user.id,
+    actorType: targetMonth ? "agent" : "user",
+    agentRole: targetMonth ? "aria" : undefined,
+    action: "kpi.update",
+    entityType: "kpi",
+    entityId: month,
+    summary: `KPI data updated for ${month}${payload.periods ? ` — periods: ${JSON.stringify(payload.periods).slice(0, 120)}` : ""}`,
+    metadata: { payload, targetMonth: targetMonth ?? null },
+  });
 
   // Also update legacy workspace_kpis for backward compat
   const { data: allMonthly } = await admin

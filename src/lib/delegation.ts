@@ -7,6 +7,7 @@ import { buildSystemPrompt, type AgentRole, AGENTS } from "@/lib/prompts";
 import { loadMemories } from "@/lib/memory";
 import { recordUsage } from "@/lib/credits";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logAudit } from "@/lib/audit";
 import type { BuildPromptContext } from "@/lib/prompts";
 
 export type DelegationTask = {
@@ -128,6 +129,21 @@ export async function executeDelegation(opts: {
       outputs.push({ agent: task.agent, output: `Error: ${msg}` });
     }
   }
+
+  // Fire-and-forget audit log after all delegated tasks complete
+  void logAudit({
+    workspaceId,
+    actorType: "agent",
+    agentRole: "aria",
+    action: "agent.delegation",
+    summary: `Aria delegated to ${plan.tasks.map((t) => t.agent).join(", ")}`,
+    metadata: {
+      tasks: plan.tasks.map((t) => ({
+        agent: t.agent,
+        instruction: t.instruction.slice(0, 100),
+      })),
+    },
+  });
 
   return { outputs, totalInputTokens, totalOutputTokens };
 }

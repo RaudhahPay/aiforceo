@@ -5,6 +5,7 @@ import { getRemainingTokens, TIER_MONTHLY_TOKENS } from "@/lib/credits";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireUser } from "@/lib/auth/require";
 import { SettingsClient } from "./SettingsClient";
+import { listAuditLog } from "@/server/actions/audit";
 
 export default async function SettingsPage() {
   const [user, ctx] = await Promise.all([requireUser(), getCurrentWorkspace()]);
@@ -28,6 +29,7 @@ export default async function SettingsPage() {
     { data: convRows },
     { data: memories },
     { data: invites },
+    auditLogEntries,
   ] = await Promise.all([
     getRemainingTokens(workspace.id),
     admin
@@ -79,6 +81,7 @@ export default async function SettingsPage() {
       .eq("workspace_id", workspace.id)
       .order("created_at", { ascending: false })
       .limit(20),
+    listAuditLog(100).catch(() => []),
   ]);
 
   const quota = TIER_MONTHLY_TOKENS[workspace.tier] ?? 100_000;
@@ -138,6 +141,7 @@ export default async function SettingsPage() {
           briefTimezone={wsDetails?.brief_timezone ?? "Asia/Kuala_Lumpur"}
           briefHour={wsDetails?.brief_hour ?? 9}
           memories={memories ?? []}
+          auditLog={auditLogEntries}
           invites={(invites ?? []) as { id: string; email: string; role: string; accepted_at: string | null; created_at: string; expires_at: string }[]}
           ledger={(ledger ?? []).map((r) => ({
             deltaTokens: r.delta_tokens,

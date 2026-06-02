@@ -3,6 +3,7 @@
 import { requireWorkspaceOwner } from "@/lib/auth/require";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { logAudit } from "@/lib/audit";
 
 export type TaskType = "approval" | "review" | "follow-up" | "alert" | "action";
 export type TaskStatus = "open" | "in_progress" | "done" | "dismissed";
@@ -101,6 +102,18 @@ export async function createTask(data: {
 
   if (error) throw new Error(error.message);
 
+  // Fire-and-forget audit log
+  void logAudit({
+    workspaceId: workspace.id,
+    actorType: data.sourceAgent ? "agent" : "user",
+    agentRole: data.sourceAgent ?? undefined,
+    action: "task.create",
+    entityType: "task",
+    entityId: task.id,
+    summary: `Task created: "${task.title}" (${task.type}, priority ${task.priority})`,
+    metadata: { type: task.type, priority: task.priority, sourceAgent: task.source_agent },
+  });
+
   revalidatePath("/tasks");
   revalidatePath("/command");
   return task as Task;
@@ -142,6 +155,17 @@ export async function updateTaskStatus(
 
   if (error) throw new Error(error.message);
 
+  // Fire-and-forget audit log
+  void logAudit({
+    workspaceId: workspace.id,
+    actorType: "user",
+    action: "task.status_change",
+    entityType: "task",
+    entityId: id,
+    summary: `Task status changed to "${status}"`,
+    metadata: { newStatus: status },
+  });
+
   revalidatePath("/tasks");
   revalidatePath("/command");
 }
@@ -178,6 +202,17 @@ export async function updateTask(
   const { error } = await admin.from("tasks").update(updates).eq("id", id);
   if (error) throw new Error(error.message);
 
+  // Fire-and-forget audit log
+  void logAudit({
+    workspaceId: workspace.id,
+    actorType: "user",
+    action: "task.update",
+    entityType: "task",
+    entityId: id,
+    summary: `Task updated${data.title ? `: "${data.title}"` : ""}`,
+    metadata: { updates: data },
+  });
+
   revalidatePath("/tasks");
   revalidatePath("/command");
 }
@@ -201,6 +236,17 @@ export async function deleteTask(id: string): Promise<void> {
 
   const { error } = await admin.from("tasks").delete().eq("id", id);
   if (error) throw new Error(error.message);
+
+  // Fire-and-forget audit log
+  void logAudit({
+    workspaceId: workspace.id,
+    actorType: "user",
+    action: "task.delete",
+    entityType: "task",
+    entityId: id,
+    summary: `Task deleted`,
+    metadata: { taskId: id },
+  });
 
   revalidatePath("/tasks");
   revalidatePath("/command");

@@ -10,6 +10,7 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAnthropic, ANTHROPIC_MODEL } from "@/lib/anthropic";
+import { logAudit } from "@/lib/audit";
 
 type MessageLike = {
   role: string;
@@ -32,9 +33,10 @@ export async function generateConversationSummary(opts: {
   workspaceId: string;
   agentRole: string;
   messages: Array<{ role: string; content: string; id?: string }>;
+  messageCount?: number;
 }): Promise<void> {
   try {
-    const { conversationId, agentRole, messages } = opts;
+    const { conversationId, workspaceId, agentRole, messages, messageCount } = opts;
 
     if (messages.length === 0) return;
 
@@ -75,6 +77,18 @@ export async function generateConversationSummary(opts: {
         ...(lastMsgId ? { summary_through_msg_id: lastMsgId } : {}),
       })
       .eq("id", conversationId);
+
+    // Fire-and-forget audit log
+    void logAudit({
+      workspaceId,
+      actorType: "system",
+      agentRole,
+      action: "conversation.summary_generated",
+      entityType: "conversation",
+      entityId: conversationId,
+      summary: `Conversation summary generated for ${agentRole} (${messageCount ?? messages.length} messages)`,
+      metadata: { messageCount: messageCount ?? messages.length },
+    });
   } catch {
     // Silently swallow — summary generation must never crash the caller
   }

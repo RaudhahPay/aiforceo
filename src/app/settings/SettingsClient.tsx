@@ -7,6 +7,8 @@ import { createPortalSession, createTopupCheckoutSession } from "@/server/action
 import { inviteTeamMember, revokeInvite } from "@/server/actions/invites";
 import { setLocale } from "@/server/actions/locale";
 import type { AgentMemory, MemoryCategory } from "@/lib/memory";
+import { AuditLogTab } from "./AuditLogTab";
+import type { AuditLogEntry } from "@/server/actions/audit";
 
 /* ─── CONSTANTS ─────────────────────────────────────────────── */
 const CHALLENGES = [
@@ -764,6 +766,7 @@ export function SettingsClient({
   briefHour,
   memories: initialMemories,
   invites: initialInvites = [],
+  auditLog: auditLogEntries = [],
 }: {
   workspaceId: string;
   tier: string;
@@ -780,13 +783,14 @@ export function SettingsClient({
   briefHour: number;
   memories: AgentMemory[];
   invites?: Invite[];
+  auditLog?: AuditLogEntry[];
 }) {
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "profile" | "voice" | "financials" | "usage" | "billing" | "team" | "notifications" | "memory" | "language"
+    "profile" | "voice" | "financials" | "usage" | "billing" | "team" | "notifications" | "memory" | "language" | "auditLog"
   >("profile");
 
   // AI Memory state
@@ -858,6 +862,7 @@ export function SettingsClient({
     { key: "notifications", label: "Notifications" },
     { key: "memory",        label: "AI Memory" },
     { key: "language",      label: "Language" },
+    { key: "auditLog",      label: "Audit Log" },
   ];
 
   const tabStyle = (t: typeof activeTab): React.CSSProperties => ({
@@ -1388,6 +1393,11 @@ export function SettingsClient({
             More languages coming soon — Español, العربية, 中文.
           </p>
         </div>
+      )}
+
+      {/* ── Audit Log tab ── */}
+      {activeTab === "auditLog" && (
+        <AuditLogTab entries={auditLogEntries} />
       )}
 
       {/* Save bar — only for profile/voice/financials */}
