@@ -156,16 +156,16 @@ export function Sidebar({
 
           {/* Intelligence */}
           <Section title="Intelligence">
-            <Item href="/dashboard" active={active === "sales"} icon="💰">
+            <Item href="/sales" active={active === "sales"} icon="💰">
               Sales
             </Item>
-            <Item href="/dashboard" active={active === "marketing"} icon="📣">
+            <Item href="/marketing" active={active === "marketing"} icon="📣">
               Marketing
             </Item>
-            <Item href="/dashboard" active={active === "finance"} icon="📊">
+            <Item href="/finance" active={active === "finance"} icon="📊">
               Finance
             </Item>
-            <Item href="/dashboard" active={active === "operations"} icon="⚙">
+            <Item href="/operations" active={active === "operations"} icon="⚙">
               Operations
             </Item>
           </Section>

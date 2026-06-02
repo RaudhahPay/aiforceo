@@ -320,6 +320,8 @@ export function ChatClient({
   conversationId: initialConversationId,
   initialMessages,
   pastConversations = [],
+  embedded = false,
+  autoSendPrompt,
 }: {
   role: string; // AgentRole | custom agent UUID
   agent: {
@@ -332,6 +334,8 @@ export function ChatClient({
   conversationId: string;
   initialMessages: Msg[];
   pastConversations?: PastConv[];
+  embedded?: boolean;
+  autoSendPrompt?: string;
 }) {
   const router = useRouter();
   const [conversationId, setConversationId] = useState(initialConversationId);
@@ -373,6 +377,18 @@ export function ChatClient({
       behavior: "smooth",
     });
   }, [messages]);
+
+  // Auto-send prompt when changed externally (used by DepartmentWorkspace quick actions)
+  const lastAutoPrompt = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (autoSendPrompt && autoSendPrompt !== lastAutoPrompt.current && !pending) {
+      lastAutoPrompt.current = autoSendPrompt;
+      // Strip __seqN suffix used to force re-trigger
+      const cleanPrompt = autoSendPrompt.replace(/__seq\d+$/, "");
+      void send(cleanPrompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSendPrompt]);
 
   async function handleNewChat() {
     if (pending || newChatLoading) return;
@@ -529,29 +545,29 @@ export function ChatClient({
 
       <div
         className="flex flex-col"
-        style={{ background: "var(--bg)", height: "100vh", overflow: "hidden" }}
+        style={{ background: "var(--bg)", height: embedded ? "100%" : "100vh", overflow: "hidden" }}
       >
         {/* Header */}
         <div
           style={{
-            padding: "14px 28px",
+            padding: embedded ? "10px 16px" : "14px 28px",
             background: "var(--panel)",
             borderBottom: "1px solid var(--line)",
             display: "flex",
             alignItems: "center",
-            gap: 14,
+            gap: embedded ? 10 : 14,
           }}
         >
           <div
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
+              width: embedded ? 32 : 44,
+              height: embedded ? 32 : 44,
+              borderRadius: embedded ? 9 : 12,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 700,
-              fontSize: 18,
+              fontSize: embedded ? 13 : 18,
               background: grad,
               color: onLight ? "#1E2761" : "#fff",
               flexShrink: 0,
@@ -563,20 +579,22 @@ export function ChatClient({
             <h3
               style={{
                 margin: 0,
-                fontSize: 17,
+                fontSize: embedded ? 14 : 17,
                 fontFamily: "Georgia,serif",
                 color: "var(--ink)",
               }}
             >
               {agent.name} · {agent.title}
             </h3>
-            <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
-              {workspaceName} · {agent.tag}
-            </p>
+            {!embedded && (
+              <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+                {workspaceName} · {agent.tag}
+              </p>
+            )}
           </div>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            {/* History button */}
-            {pastConversations.length > 1 && (
+            {/* History button (hidden in embedded mode) */}
+            {!embedded && pastConversations.length > 1 && (
               <div style={{ position: "relative" }}>
                 <button
                   onClick={() => setShowHistory((v) => !v)}
