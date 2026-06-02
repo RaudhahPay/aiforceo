@@ -114,8 +114,12 @@ export function DepartmentPage({
   pastConversations: PastConv[];
 }) {
   const now = new Date();
-  const currentMonthStr = defaultMonth ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  // Default to the most recent month with actual data, not the current calendar month
+  const latestDataMonth = monthlyRecords.length > 0
+    ? [...monthlyRecords].sort((a, b) => b.month.localeCompare(a.month))[0]!.month
+    : currentMonthStr;
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth ?? latestDataMonth);
   const [period, setPeriod] = useState<"MTD" | "QTD" | "YTD">("MTD");
 
   // Build available months: all months of current year + any with data
@@ -147,7 +151,33 @@ export function DepartmentPage({
   const showProjection = (type === "sales" || type === "finance") && monthlyRecords.length >= 2;
   const showBenchmark = !!industry && !!kpi;
 
+  // Detect if the selected month has no real data (all zeros)
+  const isEmptyMonth = useMemo(() => {
+    if (monthlyRecords.length === 0) return false; // no records at all — not an "empty month" scenario
+    const hasRecord = monthlyRecords.some(r => r.month === selectedMonth);
+    if (!hasRecord) return true;
+    const mtd = kpi.periods.MTD;
+    return (mtd.revenue == null || mtd.revenue === 0) && (mtd.reach == null || mtd.reach === 0);
+  }, [monthlyRecords, selectedMonth, kpi]);
+
   const kpiViewNode = useMemo(() => {
+    if (isEmptyMonth) {
+      return (
+        <div style={{
+          textAlign: "center", padding: "40px 24px",
+          border: "1px dashed var(--line)", borderRadius: 12,
+          color: "var(--muted)", fontSize: 13, lineHeight: 1.6,
+        }}>
+          <div style={{ fontSize: 28, marginBottom: 12 }}>📭</div>
+          <div style={{ fontWeight: 700, color: "var(--ink)", fontSize: 15, marginBottom: 6 }}>
+            No data for {formatMonth(selectedMonth)}
+          </div>
+          <div>
+            Select a month with data above, or ask your AI agent to help you enter {formatMonth(selectedMonth)} numbers.
+          </div>
+        </div>
+      );
+    }
     switch (type) {
       case "sales":
         return <SalesKPIView d={d} period={period} accent={dept.accent} />;
@@ -158,23 +188,27 @@ export function DepartmentPage({
       case "operations":
         return <OperationsKPIView o={kpi.ops} accent={dept.accent} />;
     }
-  }, [type, d, period, kpi, dept.accent]);
+  }, [type, d, period, kpi, dept.accent, isEmptyMonth, selectedMonth]);
 
   // Month picker dropdown
   const monthPickerNode = availableMonths.length > 1 ? (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ fontSize: 16 }}>📅</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.04em" }}>
+        Viewing:
+      </span>
       <select
         value={selectedMonth}
         onChange={(e) => setSelectedMonth(e.target.value)}
         style={{
-          padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+          padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700,
           border: `1px solid var(--line)`, background: "var(--panel)", color: "var(--ink)",
           cursor: "pointer",
         }}
       >
         {availableMonths.map(m => {
           const hasData = monthlyRecords.some(r => r.month === m);
-          return <option key={m} value={m}>{formatMonth(m)}{hasData ? "" : " ·"}</option>;
+          return <option key={m} value={m}>{formatMonth(m)}{hasData ? " ✓" : " (no data)"}</option>;
         })}
       </select>
     </div>

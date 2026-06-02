@@ -1781,13 +1781,15 @@ export function DashboardClient({
     () => initialMonthlyRecords ?? [],
     [initialMonthlyRecords],
   );
-  const defaultMonth = useMemo(
-    () => initialDefaultMonth ?? (() => {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    })(),
-    [initialDefaultMonth],
-  );
+  const defaultMonth = useMemo(() => {
+    if (initialDefaultMonth) return initialDefaultMonth;
+    // Default to the most recent month with actual data, not the current calendar month
+    if (initialMonthlyRecords && initialMonthlyRecords.length > 0) {
+      return [...initialMonthlyRecords].sort((a, b) => b.month.localeCompare(a.month))[0]!.month;
+    }
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, [initialDefaultMonth, initialMonthlyRecords]);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
 
   // Build the KPI view from monthly records + selected month
