@@ -7,6 +7,7 @@ import { BusinessHealth } from "@/app/_components/BusinessHealth";
 import { ExecutiveRecommendations } from "@/app/_components/ExecutiveRecommendations";
 import { ActionCard } from "@/app/_components/ActionCard";
 import Link from "next/link";
+import type { Task, TaskType } from "@/server/actions/tasks";
 
 const OfficeView = dynamic(() => import("@/app/_components/OfficeView").then(m => m.OfficeView), { ssr: false });
 const WelcomeGuide = dynamic(() => import("@/app/_components/WelcomeGuide").then(m => m.WelcomeGuide), { ssr: false });
@@ -33,13 +34,14 @@ type Props = {
   hasFinancials: boolean;
   hasConnectors: boolean;
   memories: Array<{ category: string; content: string; source_agent: string | null }>;
+  tasks: Task[];
 };
 
 export function CommandCentre({
   workspaceName, workspaceId, agentStats, todayBriefContent,
   savedKpis, remaining, quota, ownerInitial, ownerName,
   hasBusinessProfile, hasBrandVoice, hasFinancials, hasConnectors,
-  memories,
+  memories, tasks,
 }: Props) {
   // Extract KPI values for health scores
   const kpi = savedKpis as Record<string, unknown> | null;
@@ -123,27 +125,39 @@ export function CommandCentre({
             <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               CEO Action Queue
             </h2>
+            <Link href="/tasks" style={{ fontSize: 11, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+              View all →
+            </Link>
           </div>
           <div style={{
             background: "var(--panel)", border: "1px solid var(--line)",
             borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 8,
           }}>
+            {/* System alerts (always shown) */}
             {remaining < quota * 0.2 && (
               <ActionCard title="Token quota running low" description={`${Math.round(remaining / 1000)}K tokens remaining this month`} type="alert" timeAgo="now" />
             )}
-            {!hasConnectors && (
+
+            {/* Real tasks from DB */}
+            {tasks.map((task) => (
+              <Link key={task.id} href="/tasks" style={{ textDecoration: "none" }}>
+                <ActionCard
+                  title={task.title}
+                  description={task.description ?? (task.source_agent ? `From ${task.source_agent.toUpperCase()}` : "")}
+                  type={task.type as Exclude<TaskType, "action">}
+                  timeAgo={task.due_date ? `Due ${task.due_date}` : ""}
+                />
+              </Link>
+            ))}
+
+            {/* Fallback setup prompts when no real tasks exist */}
+            {tasks.length === 0 && !hasConnectors && (
               <ActionCard title="Connect your data sources" description="Link Google Sheets or QuickBooks for live data" type="follow-up" timeAgo="" onClick={() => {}} />
             )}
-            {!hasBrandVoice && (
+            {tasks.length === 0 && !hasBrandVoice && (
               <ActionCard title="Set up brand voice" description="Paste a writing sample so Maya matches your tone" type="follow-up" timeAgo="" />
             )}
-            {healthData.sales > 0 && (
-              <ActionCard title="Review monthly performance" description="Your AI executives have insights ready" type="review" timeAgo="today" />
-            )}
-            <ActionCard title="Morning brief available" description="Aria has prepared today's executive summary" type="review" timeAgo="today" />
-
-            {/* Placeholder if queue is empty */}
-            {hasConnectors && hasBrandVoice && healthData.sales === 0 && (
+            {tasks.length === 0 && hasConnectors && hasBrandVoice && remaining >= quota * 0.2 && (
               <p style={{ margin: 0, padding: "12px 0", fontSize: 12, color: "var(--muted)", textAlign: "center" }}>
                 No pending actions. You&apos;re all caught up! 🎉
               </p>

@@ -4,6 +4,7 @@ import { getCurrentWorkspace } from "@/lib/workspace";
 import { getRemainingTokens, TIER_MONTHLY_TOKENS } from "@/lib/credits";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { loadKPIs } from "@/server/actions/dashboard";
+import type { Task } from "@/server/actions/tasks";
 import { Sidebar } from "@/app/_components/Sidebar";
 import { CommandCentre } from "./CommandCentre";
 
@@ -101,6 +102,17 @@ export default async function CommandPage() {
     .order("last_reinforced_at", { ascending: false })
     .limit(12);
 
+  // Real tasks — open + in_progress, top 5 by priority
+  const { data: taskRows } = await admin
+    .from("tasks")
+    .select("*")
+    .eq("workspace_id", workspace.id)
+    .in("status", ["open", "in_progress"])
+    .order("priority", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const tasks = (taskRows ?? []) as Task[];
+
   return (
     <div className="grid min-h-screen app-grid" style={{ gridTemplateColumns: "240px 1fr" }}>
       <Sidebar
@@ -126,6 +138,7 @@ export default async function CommandPage() {
         hasFinancials={hasFinancials}
         hasConnectors={hasConnectors}
         memories={(memories ?? []) as Array<{ category: string; content: string; source_agent: string | null }>}
+        tasks={tasks}
       />
     </div>
   );

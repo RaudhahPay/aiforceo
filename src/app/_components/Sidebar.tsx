@@ -172,6 +172,9 @@ export function Sidebar({
 
           {/* Automation */}
           <Section title="Automation">
+            <Item href="/tasks" active={active === "tasks"} icon="✅">
+              Action Queue
+            </Item>
             <Item href="/autopilot" active={active === "autopilot"} icon="⚡">
               Campaigns
             </Item>

@@ -14,6 +14,7 @@ import { buildSystemPrompt, type AgentRole } from "@/lib/prompts";
 import { getRemainingTokens, recordUsage } from "@/lib/credits";
 import { buildSheetsContext, fetchSheetByUrl } from "@/lib/google-sheets";
 import { loadMemories, extractAndSaveMemories } from "@/lib/memory";
+import { extractAndCreateTasks } from "@/lib/tasks";
 import { loadConversationContext, generateConversationSummary } from "@/lib/conversation-summary";
 import { uploadAttachmentsToStorage } from "@/lib/attachments";
 import { parseDelegationPlan, executeDelegation, synthesizeDelegation } from "@/lib/delegation";
@@ -425,6 +426,15 @@ export async function POST(req: NextRequest): Promise<Response> {
             userMessage:      lastUser.content,
             assistantMessage: fullText,
           });
+
+          if (aMsg?.id) {
+            void extractAndCreateTasks({
+              workspaceId:      workspace.id,
+              agentRole:        role,
+              assistantMessage: fullText,
+              messageId:        aMsg.id,
+            });
+          }
 
           // Generate conversation summary at messages 10, 15, 20, 25...
           if (newMsgCount >= 10 && newMsgCount % 5 === 0) {
