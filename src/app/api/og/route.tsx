@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
 const EXECUTIVES = [
   { role: "CMO", name: "Maya", color: "#F96167" },
   { role: "COO", name: "Owen", color: "#2A9D8F" },
