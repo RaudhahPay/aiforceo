@@ -58,8 +58,46 @@ export default function PricingPage() {
     <main className="max-w-6xl mx-auto px-6 py-20">
       <Link href="/" className="flex items-center gap-2.5 font-bold mb-12">
         <span className="logo-mark" />
-        Ai<span style={{ color: "var(--accent)" }}>4C</span>
+        AI<span style={{ color: "var(--accent)" }}>for</span>CEO
       </Link>
+
+      {/* ── Founding member banner ── */}
+      <div
+        className="mb-8 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(197,165,114,0.12), rgba(197,165,114,0.04))",
+          border: "1px solid rgba(197,165,114,0.4)",
+        }}
+      >
+        <div>
+          <p
+            className="text-xs font-bold uppercase tracking-widest mb-1"
+            style={{ color: "var(--gold)" }}
+          >
+            Founding Member Offer — First 30 Seats
+          </p>
+          <p className="font-bold text-xl" style={{ color: "var(--ink)" }}>
+            $47 / month, locked for life
+          </p>
+          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+            Setup fee waived. Includes all 6 executives. Price never increases
+            after you claim your seat.
+          </p>
+        </div>
+        <Link
+          href="/login"
+          className="btn shrink-0"
+          style={{
+            background: "var(--gold)",
+            color: "#0a0e1a",
+            border: "none",
+            textDecoration: "none",
+          }}
+        >
+          Claim founding seat →
+        </Link>
+      </div>
 
       {/* ── Banners ── */}
       {!stripeReady && (
@@ -231,7 +269,7 @@ export default function PricingPage() {
                 "White-glove onboarding by our team",
                 "Custom agent personas built for your industry",
                 "Dedicated Slack support channel (30 days)",
-                "Monthly strategy call with Boardroom AI team",
+                "Monthly strategy call with AIforCEO team",
               ].map((f) => (
                 <li key={f} className="text-sm flex gap-2">
                   <span style={{ color: "var(--gold)", fontWeight: 700 }}>

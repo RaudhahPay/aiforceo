@@ -1,29 +1,36 @@
 # AI for CEO — Master Build Status
-Last updated: 3 June 2026
+Last updated: 5 July 2026
 
 ## Layer Status
-| Layer | Name | Status | Active Session |
-|-------|------|--------|----------------|
-| L1 | Product / PRD | ✅ Done | AI 4 CEO |
-| L2 | Design | 🟡 Partial | - |
-| L3 | Frontend | 🟡 Partial | AI for CEO 1 |
-| L4 | Backend | 🟡 Partial | AI for CEO — L4 |
-| L5 | Database | 🟡 Partial | - |
-| L6 | Infrastructure | 🔴 Pending | AI for CEO — L6 |
-| L7 | Security | 🟡 Partial | AI for CEO — L7 |
-| L8 | Integrations | 🟡 Partial | AI for CEO — L8 |
-| L9 | Operations | 🔴 Not started | AI for CEO — L9 |
-| L10 | Business | 🟡 Partial | AI for CEO — L10 |
+| Layer | Name | Status | Notes |
+|-------|------|--------|-------|
+| L1 | Product / PRD | ✅ Done | PRD locked |
+| L2 | Design | 🟡 Partial | Navy+gold theme shipped, Office View done |
+| L3 | Frontend | 🟡 Partial | Command Centre, Dept Workspaces, Portfolio, Tasks, Audit Log all live |
+| L4 | Backend | 🟡 Partial | Chat streaming, autopilot, connectors — QBO depth pending |
+| L5 | Database | 🟡 Partial | 15 migrations applied; 0010-0015 verified live |
+| L6 | Infrastructure | 🟡 Partial | CF Worker deployed to aiforceo.app; CI auto-deploy needs CLOUDFLARE_API_TOKEN secret |
+| L7 | Security | 🟡 Partial | RLS on all tables, admin client for writes, audit log wired |
+| L8 | Integrations | 🟡 Partial | Google Sheets + QBO connectors built; end-to-end auth pending |
+| L9 | Operations | 🔴 Pending | Monitoring/logging/alerting not started |
+| L10 | Business | 🟡 Partial | Stripe billing wired; PDPA compliance audit pending |
 
-## Current Sprint
-Session 1: Fix Command Centre + sidebar routing bugs
+## Feature Summary (shipped as of 2026-07-05)
+- CEO Command Centre + Department Intelligence Workspaces
+- Monthly KPI architecture (per-workspace, per-month rows)
+- CEO Task Manager — AI-surfaced action items, wired to agents
+- Audit Log — append-only trail of every agent action
+- Portfolio View — Aria briefing across all companies
+- Rolling conversation summary — 85% token cost reduction
+- Document Vault + Message Attachments
+- Admin Approval flow for workspace invites
+- Brand rename: Ai4C → AIforCEO across all UI
 
-## Next Sessions Queued
-1. Autopilot + Connectors wiring (L4)
-2. QBO integration depth (L8)
-3. Production deploy — Cloudflare Workers (L6)
-4. Monitoring + logging setup (L9)
-5. Security audit + PDPA compliance (L7/L10)
+## Open Blockers
+1. GitHub Actions `CLOUDFLARE_API_TOKEN` secret — without this, pushes to main don't auto-deploy
+   Set at: github.com/ariavibecoderlab/aiforceo/settings/secrets/actions
+2. QBO integration depth (L8) — connector UI built, deep data sync pending
+3. Monitoring + logging (L9) — no alerting or error tracking in place yet
 
 ## Production Status
-🔴 NOT LIVE — Deploy to Cloudflare Workers pending
+🟡 LIVE at https://aiforceo.app (manual deploy) — CI auto-deploy pending CLOUDFLARE_API_TOKEN secret

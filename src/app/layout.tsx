@@ -39,7 +39,7 @@ export const metadata: Metadata = {
       "Six AI Command Executives. One command centre. Trained on your business in under 30 minutes.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og",
         width: 1200,
         height: 630,
         alt: "AIforCEO — The C-Suite by AI",
@@ -48,17 +48,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@aiforceoapp",
+    creator: "@aiforceoapp",
     title: "AIforCEO — The C-Suite by AI",
     description:
       "Six AI Command Executives. One command centre. Trained on your business.",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
   },
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  verification: { google: "" },
+  // TODO: paste your Google Search Console verification string here
+  // verification: { google: "YOUR_VERIFICATION_STRING_HERE" },
 };
 
 export default function RootLayout({
@@ -76,7 +79,7 @@ export default function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="apple-mobile-web-app-title" content="Boardroom AI" />
+        <meta name="apple-mobile-web-app-title" content="AIforCEO" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body>{children}</body>

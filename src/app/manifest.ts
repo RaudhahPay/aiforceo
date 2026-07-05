@@ -2,10 +2,11 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Boardroom AI",
-    short_name: "Boardroom AI",
-    description: "Your AI C-Suite — 6 executives customized for your business",
-    start_url: "/dashboard",
+    name: "AIforCEO",
+    short_name: "AIforCEO",
+    description:
+      "Six AI Command Executives briefed on your business in 30 minutes.",
+    start_url: "/command",
     display: "standalone",
     background_color: "#0E1726",
     theme_color: "#C5A572",

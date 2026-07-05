@@ -30,9 +30,18 @@ export async function sendMorningBriefEmail(opts: {
   const htmlContent = briefContent
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/^### (.*)/gm, "<h3 style='margin:16px 0 6px;color:#0E1726;font-size:14px;font-weight:700'>$1</h3>")
-    .replace(/^## (.*)/gm, "<h2 style='margin:20px 0 8px;color:#0E1726;font-size:16px;font-weight:700'>$1</h2>")
-    .replace(/^# (.*)/gm, "<h1 style='margin:24px 0 10px;color:#0E1726;font-size:18px;font-weight:700'>$1</h1>")
+    .replace(
+      /^### (.*)/gm,
+      "<h3 style='margin:16px 0 6px;color:#0E1726;font-size:14px;font-weight:700'>$1</h3>",
+    )
+    .replace(
+      /^## (.*)/gm,
+      "<h2 style='margin:20px 0 8px;color:#0E1726;font-size:16px;font-weight:700'>$1</h2>",
+    )
+    .replace(
+      /^# (.*)/gm,
+      "<h1 style='margin:24px 0 10px;color:#0E1726;font-size:18px;font-weight:700'>$1</h1>",
+    )
     .replace(/^- (.*)/gm, "<li style='margin:4px 0'>$1</li>")
     .replace(/\n\n/g, "</p><p style='margin:8px 0'>")
     .replace(/\n/g, "<br>");
@@ -51,7 +60,7 @@ export async function sendMorningBriefEmail(opts: {
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <span style="font-size:18px;font-weight:700;color:#fff">Boardroom <span style="color:#C5A572">AI</span></span><br>
+                <span style="font-size:18px;font-weight:700;color:#fff">AI<span style="color:#C5A572">for</span>CEO</span><br>
                 <span style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">${workspaceName}</span>
               </td>
               <td align="right">
@@ -96,7 +105,7 @@ export async function sendMorningBriefEmail(opts: {
 
   try {
     const { error } = await resend.emails.send({
-      from: "Boardroom AI <briefs@aiforceo.app>",
+      from: "AIforCEO <briefs@aiforceo.app>",
       to: toEmail,
       subject: `☀ ${workspaceName} — Morning Brief · ${date}`,
       html,
@@ -104,7 +113,10 @@ export async function sendMorningBriefEmail(opts: {
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Email send failed" };
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Email send failed",
+    };
   }
 }
 
@@ -131,15 +143,15 @@ export async function sendInviteEmail(opts: {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
         <tr><td style="background:#0E1726;padding:24px 32px;border-radius:12px 12px 0 0">
-          <p style="margin:0;font-size:18px;font-weight:700;color:#fff">Boardroom <span style="color:#C5A572">AI</span></p>
+          <p style="margin:0;font-size:18px;font-weight:700;color:#fff">AI<span style="color:#C5A572">for</span>CEO</p>
         </td></tr>
         <tr><td style="background:#fff;padding:32px;border-radius:0 0 12px 12px">
           <h2 style="margin:0 0 16px;font-size:20px;color:#0E1726">You've been invited to ${workspaceName}</h2>
           <p style="font-size:14px;color:#64748b;line-height:1.6">
-            ${inviterEmail} has invited you to join <strong>${workspaceName}</strong> on Boardroom AI as a <strong>${roleLabel}</strong>.
+            ${inviterEmail} has invited you to join <strong>${workspaceName}</strong> on AIforCEO as a <strong>${roleLabel}</strong>.
           </p>
           <p style="font-size:14px;color:#64748b;line-height:1.6">
-            Boardroom AI gives your team access to a customized AI C-Suite — 6 executives (CEO, CFO, CMO, COO, CTO, and Aria) briefed on ${workspaceName}'s business profile and goals.
+            AIforCEO gives your team access to a customized AI C-Suite — 6 executives (CEO, CFO, CMO, COO, CTO, and Aria) briefed on ${workspaceName}'s business profile and goals.
           </p>
           <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0">
             <tr><td align="center">
@@ -160,14 +172,17 @@ export async function sendInviteEmail(opts: {
 
   try {
     const { error } = await resend.emails.send({
-      from: "Boardroom AI <invites@aiforceo.app>",
+      from: "AIforCEO <invites@aiforceo.app>",
       to: toEmail,
-      subject: `${inviterEmail} invited you to ${workspaceName} on Boardroom AI`,
+      subject: `${inviterEmail} invited you to ${workspaceName} on AIforCEO`,
       html,
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Email send failed" };
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Email send failed",
+    };
   }
 }

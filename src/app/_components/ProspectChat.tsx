@@ -9,7 +9,7 @@ const INITIAL_MESSAGES: Msg[] = [
   {
     role: "assistant",
     content:
-      "I'm Aria — Chief of Staff at AIforCEO. Ask me about the platform, pricing, or which Command Executive would drive the most impact for your business.",
+      "What's costing you the most right now — revenue you're not capturing, or costs you can't see clearly?",
   },
 ];
 
