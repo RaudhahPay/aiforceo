@@ -10,7 +10,7 @@ const GRADIENT_PRESETS = [
   { from: "#0096C7", to: "#00BFFF" },
   { from: "#F96167", to: "#FF9966" },
   { from: "#2A9D8F", to: "#43BBAA" },
-  { from: "#C5A572", to: "#E2C28F" },
+  { from: "#F0B429", to: "#F8D66D" },
   { from: "#E76F51", to: "#F4A261" },
 ];
 

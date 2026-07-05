@@ -37,7 +37,7 @@ export const AGENTS: Record<
     name: "Eden",
     title: "AI CEO",
     tag: "Strategic command. Daily intelligence.",
-    gradient: ["#C5A572", "#E2C28F"],
+    gradient: ["#F0B429", "#F8D66D"],
   },
   cto: {
     name: "Tariq",

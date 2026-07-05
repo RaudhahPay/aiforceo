@@ -10,7 +10,7 @@ const GRADIENT_PRESETS = [
   { from: "#0096C7", to: "#00BFFF", name: "Blue" },
   { from: "#F96167", to: "#FF9966", name: "Coral" },
   { from: "#2A9D8F", to: "#43BBAA", name: "Teal" },
-  { from: "#C5A572", to: "#E2C28F", name: "Gold" },
+  { from: "#F0B429", to: "#F8D66D", name: "Gold" },
   { from: "#E76F51", to: "#F4A261", name: "Orange" },
 ];
 

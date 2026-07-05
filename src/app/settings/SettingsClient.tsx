@@ -1134,8 +1134,8 @@ export function SettingsClient({
           {form.voiceSummary && (
             <div
               style={{
-                background: "rgba(212,160,23,0.08)",
-                border: "1px solid rgba(212,160,23,0.25)",
+                background: "rgba(240,180,41,0.08)",
+                border: "1px solid rgba(240,180,41,0.25)",
                 borderRadius: 10,
                 padding: "14px 16px",
               }}
@@ -1502,7 +1502,7 @@ export function SettingsClient({
           {(() => {
             const CATEGORY_COLOR: Record<string, string> = {
               business_fact: "#0096C7",
-              decision: "#C5A572",
+              decision: "#F0B429",
               preference: "#7C3AED",
               concern: "#F96167",
               milestone: "var(--success)",

@@ -65,7 +65,7 @@ const LAUNCH_AGENTS = [
     name: "Eden",
     title: "CEO Advisor",
     tag: "Strategy, daily brief, decisions log",
-    g: ["#C5A572", "#E2C28F"] as const,
+    g: ["#F0B429", "#F8D66D"] as const,
   },
   {
     role: "cto",

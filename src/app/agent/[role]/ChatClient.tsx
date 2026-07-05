@@ -143,7 +143,7 @@ function AssistantContent({
           code: ({ children }) => (
             <code
               style={{
-                background: "rgba(212,160,23,0.12)",
+                background: "rgba(240,180,41,0.12)",
                 borderRadius: "3px",
                 padding: "0.1em 0.35em",
                 fontSize: "0.88em",
@@ -218,7 +218,7 @@ function AssistantContent({
                 background: "var(--panel2)",
                 fontWeight: 700,
                 textAlign: "left",
-                color: "#C5A572",
+                color: "#F0B429",
                 fontSize: "0.9em",
                 letterSpacing: "0.02em",
                 whiteSpace: "nowrap",

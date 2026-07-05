@@ -25,7 +25,7 @@ export function CreditMeter({ remaining, quota }: { remaining: number; quota: nu
       </div>
       <a href="/pricing" style={{
         display: "block", marginTop: 10, textAlign: "center",
-        background: "rgba(212,160,23,0.12)", color: "#D4A017",
+        background: "rgba(240,180,41,0.12)", color: "#D4A017",
         padding: "7px", borderRadius: 8, fontSize: 11, fontWeight: 700,
         letterSpacing: "0.03em", textDecoration: "none",
       }}>

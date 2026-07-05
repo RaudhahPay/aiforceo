@@ -67,7 +67,7 @@ export default async function SavedPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{
                         fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 20,
-                        background: "rgba(212,160,23,0.12)", color: "var(--gold)",
+                        background: "rgba(240,180,41,0.12)", color: "var(--gold)",
                       }}>
                         {roleLabel}
                       </span>

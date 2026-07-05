@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 const D = {
   bg: "#0E1726",
-  gold: "#C5A572",
+  gold: "#F0B429",
   line: "#2A3B5E",
 };
 

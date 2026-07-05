@@ -620,7 +620,7 @@ export function AutopilotClient({
                     borderRadius: 10,
                     border: `1.5px solid ${active ? D.gold : D.line}`,
                     background: active
-                      ? "rgba(212,160,23,0.06)"
+                      ? "rgba(240,180,41,0.06)"
                       : "transparent",
                     cursor: "pointer",
                     textAlign: "left",

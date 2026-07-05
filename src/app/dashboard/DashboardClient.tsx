@@ -1031,7 +1031,7 @@ function GroupView({
                   style={{
                     borderTop: `1px solid ${C.line}`,
                     background: isActive
-                      ? "rgba(212,160,23,0.06)"
+                      ? "rgba(240,180,41,0.06)"
                       : "transparent",
                   }}
                 >
@@ -1119,7 +1119,7 @@ function GroupView({
                   style={{
                     borderTop: `1px solid ${C.line}`,
                     background: isActive
-                      ? "rgba(212,160,23,0.06)"
+                      ? "rgba(240,180,41,0.06)"
                       : "transparent",
                   }}
                 >
@@ -1221,7 +1221,7 @@ function GroupView({
                   style={{
                     borderTop: `1px solid ${C.line}`,
                     background: isActive
-                      ? "rgba(212,160,23,0.06)"
+                      ? "rgba(240,180,41,0.06)"
                       : "transparent",
                   }}
                 >
@@ -1909,8 +1909,8 @@ export function DashboardClient({
             padding: "12px 18px",
             marginBottom: 16,
             borderRadius: 12,
-            background: "rgba(197,165,114,0.08)",
-            border: "1px solid rgba(197,165,114,0.25)",
+            background: "rgba(240,180,41,0.08)",
+            border: "1px solid rgba(240,180,41,0.25)",
             textDecoration: "none",
             cursor: "pointer",
           }}
@@ -1995,9 +1995,9 @@ export function DashboardClient({
                 borderRadius: 9,
                 fontSize: 12,
                 fontWeight: 600,
-                background: "rgba(212,160,23,0.12)",
+                background: "rgba(240,180,41,0.12)",
                 color: C.gold,
-                border: `1px solid rgba(212,160,23,0.3)`,
+                border: `1px solid rgba(240,180,41,0.3)`,
                 textDecoration: "none",
               }}
             >
@@ -2057,8 +2057,8 @@ export function DashboardClient({
       {hydrated && isDefaultData && (
         <div
           style={{
-            background: "rgba(212,160,23,0.08)",
-            border: "1px solid rgba(212,160,23,0.3)",
+            background: "rgba(240,180,41,0.08)",
+            border: "1px solid rgba(240,180,41,0.3)",
             borderRadius: 12,
             padding: "12px 16px",
             marginBottom: 16,

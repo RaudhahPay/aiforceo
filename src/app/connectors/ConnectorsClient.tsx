@@ -330,7 +330,7 @@ function CustomApiCard({
         </div>
         <span style={{
           fontSize: 10, fontWeight: 700, padding: "3px 8px",
-          borderRadius: 6, background: "rgba(197,165,114,0.1)", color: "var(--accent)"
+          borderRadius: 6, background: "rgba(240,180,41,0.1)", color: "var(--accent)"
         }}>REST API</span>
       </div>
 

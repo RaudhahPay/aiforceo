@@ -36,7 +36,7 @@ const ACTION_COLOR: Record<FilterKey, string> = {
   all:    "var(--accent)",
   kpi:    "#0096C7",
   tasks:  "#7C3AED",
-  agents: "#C5A572",
+  agents: "#F0B429",
   system: "var(--muted)",
 };
 
@@ -95,9 +95,9 @@ function ActorIcon({ actorType, agentRole }: { actorType: string; agentRole: str
     return (
       <div style={{
         width: 28, height: 28, borderRadius: "50%",
-        background: "rgba(197,165,114,0.15)", border: "1px solid rgba(197,165,114,0.3)",
+        background: "rgba(240,180,41,0.15)", border: "1px solid rgba(240,180,41,0.3)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 11, fontWeight: 700, color: "#C5A572", flexShrink: 0,
+        fontSize: 11, fontWeight: 700, color: "#F0B429", flexShrink: 0,
       }}>
         {AGENT_INITIAL[agentRole] ?? agentRole.charAt(0).toUpperCase()}
       </div>

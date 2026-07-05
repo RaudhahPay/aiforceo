@@ -66,8 +66,8 @@ export default function PricingPage() {
         className="mb-8 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         style={{
           background:
-            "linear-gradient(135deg, rgba(197,165,114,0.12), rgba(197,165,114,0.04))",
-          border: "1px solid rgba(197,165,114,0.4)",
+            "linear-gradient(135deg, rgba(240,180,41,0.12), rgba(240,180,41,0.04))",
+          border: "1px solid rgba(240,180,41,0.4)",
         }}
       >
         <div>
@@ -104,8 +104,8 @@ export default function PricingPage() {
         <div
           className="mb-8 rounded-xl px-5 py-4 text-sm font-medium"
           style={{
-            background: "rgba(197,165,114,0.1)",
-            border: "1px solid rgba(197,165,114,0.3)",
+            background: "rgba(240,180,41,0.1)",
+            border: "1px solid rgba(240,180,41,0.3)",
             color: "var(--gold)",
           }}
         >
@@ -144,7 +144,7 @@ export default function PricingPage() {
                   ? `2px solid ${t.color}`
                   : "1px solid var(--line)",
                 boxShadow: featured
-                  ? "0 20px 60px rgba(212,160,23,0.15)"
+                  ? "0 20px 60px rgba(240,180,41,0.15)"
                   : undefined,
               }}
             >
@@ -239,8 +239,8 @@ export default function PricingPage() {
         className="mt-8 card p-8"
         style={{
           background:
-            "linear-gradient(135deg, rgba(197,165,114,0.08), rgba(197,165,114,0.03))",
-          border: "1px solid rgba(197,165,114,0.25)",
+            "linear-gradient(135deg, rgba(240,180,41,0.08), rgba(240,180,41,0.03))",
+          border: "1px solid rgba(240,180,41,0.25)",
         }}
       >
         <div className="flex flex-col md:flex-row md:items-center gap-6 justify-between">

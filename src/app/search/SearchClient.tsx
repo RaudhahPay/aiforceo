@@ -83,7 +83,7 @@ export function SearchClient() {
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
-                    background: isAgent ? "rgba(212,160,23,0.12)" : "rgba(139,92,246,0.12)",
+                    background: isAgent ? "rgba(240,180,41,0.12)" : "rgba(139,92,246,0.12)",
                     color: isAgent ? "var(--gold)" : "#8B5CF6",
                   }}>
                     {isAgent ? roleLabel : "You"}

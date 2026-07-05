@@ -24,7 +24,7 @@ export function MorningBrief({ briefContent, workspaceName, revenue, revenueData
       }}>
         <div style={{
           width: 48, height: 48, borderRadius: 14,
-          background: "rgba(197,165,114,0.12)",
+          background: "rgba(240,180,41,0.12)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 24, flexShrink: 0,
         }}>✨</div>

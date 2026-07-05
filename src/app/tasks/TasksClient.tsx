@@ -30,7 +30,7 @@ const D = {
 
 // ── Type badge config ─────────────────────────────────────────────────────────
 const TYPE_CONFIG: Record<TaskType, { label: string; color: string; bg: string }> = {
-  approval:    { label: "Approval",   color: "#c5a572", bg: "rgba(197,165,114,0.15)" },
+  approval:    { label: "Approval",   color: "#F0B429", bg: "rgba(240,180,41,0.15)" },
   review:      { label: "Review",     color: "#3b82f6", bg: "rgba(59,130,246,0.15)" },
   "follow-up": { label: "Follow-up",  color: "#e5a93c", bg: "rgba(229,169,60,0.15)" },
   alert:       { label: "Alert",      color: "#e5544b", bg: "rgba(229,84,75,0.15)" },
@@ -45,7 +45,7 @@ const PRIORITY_CONFIG: Record<number, { label: string; color: string; dot: strin
 
 const AGENT_INITIAL: Record<string, { initials: string; color: string }> = {
   aria: { initials: "Ar", color: "#6366f1" },
-  ceo:  { initials: "CEO", color: "#c5a572" },
+  ceo:  { initials: "CEO", color: "#F0B429" },
   cfo:  { initials: "CFO", color: "#10b981" },
   cmo:  { initials: "CMO", color: "#f59e0b" },
   coo:  { initials: "COO", color: "#3b82f6" },
@@ -846,7 +846,7 @@ export function TasksClient({ initialTasks }: { initialTasks: Task[] }) {
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    background: isActive ? "rgba(197,165,114,0.2)" : "rgba(255,255,255,0.06)",
+                    background: isActive ? "rgba(240,180,41,0.2)" : "rgba(255,255,255,0.06)",
                     color: isActive ? "var(--accent)" : D.muted,
                     padding: "1px 6px",
                     borderRadius: 10,

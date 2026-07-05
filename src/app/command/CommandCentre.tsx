@@ -102,7 +102,7 @@ export function CommandCentre({
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
-                  background: "#c5a572",
+                  background: "#F0B429",
                   color: "#0a0e1a",
                   borderRadius: 20,
                   padding: "1px 6px",

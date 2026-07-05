@@ -25,7 +25,7 @@ function MessageContent({ content }: { content: string }) {
               key={i}
               href={match[2]}
               className="underline font-semibold"
-              style={{ color: "#c5a572" }}
+              style={{ color: "#F0B429" }}
             >
               {match[1]}
             </Link>
@@ -57,8 +57,8 @@ function ChatCore({
   dark?: boolean;
 }) {
   const bg = dark ? "rgba(255,255,255,0.06)" : "var(--soft)";
-  const userBg = dark ? "rgba(197,165,114,0.15)" : "var(--ink)";
-  const userColor = dark ? "#c5a572" : "#fff";
+  const userBg = dark ? "rgba(240,180,41,0.15)" : "var(--ink)";
+  const userColor = dark ? "#F0B429" : "#fff";
   const textColor = dark ? "rgba(240,242,247,0.9)" : "var(--ink)";
   const mutedColor = dark ? "rgba(240,242,247,0.45)" : "var(--muted)";
 
@@ -333,7 +333,7 @@ export function ProspectChat({ inline = false }: { inline?: boolean }) {
                 border: "none",
                 outline: "none",
                 color: "#f0f2f7",
-                caretColor: "#c5a572",
+                caretColor: "#F0B429",
               }}
             />
             <button
@@ -347,7 +347,7 @@ export function ProspectChat({ inline = false }: { inline?: boolean }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: input.trim() ? "#c5a572" : "rgba(255,255,255,0.1)",
+                background: input.trim() ? "#F0B429" : "rgba(255,255,255,0.1)",
                 color: input.trim() ? "#0a0a0f" : "rgba(240,242,247,0.4)",
                 fontSize: 16,
                 fontWeight: 700,
@@ -392,7 +392,7 @@ export function ProspectChat({ inline = false }: { inline?: boolean }) {
                 border: "none",
                 outline: "none",
                 color: "#f0f2f7",
-                caretColor: "#c5a572",
+                caretColor: "#F0B429",
               }}
             />
             <button
@@ -406,7 +406,7 @@ export function ProspectChat({ inline = false }: { inline?: boolean }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: input.trim() ? "#c5a572" : "rgba(255,255,255,0.1)",
+                background: input.trim() ? "#F0B429" : "rgba(255,255,255,0.1)",
                 color: input.trim() ? "#0a0a0f" : "rgba(240,242,247,0.4)",
                 fontSize: 16,
                 fontWeight: 700,

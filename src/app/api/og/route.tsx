@@ -4,7 +4,7 @@ const EXECUTIVES = [
   { role: "CMO", name: "Maya", color: "#F96167" },
   { role: "COO", name: "Owen", color: "#2A9D8F" },
   { role: "CFO", name: "Felix", color: "#5566B5" },
-  { role: "CEO", name: "Eden", color: "#C5A572" },
+  { role: "CEO", name: "Eden", color: "#F0B429" },
   { role: "CTO", name: "Tariq", color: "#0096C7" },
   { role: "CoS", name: "Aria", color: "#7C3AED" },
 ];
@@ -30,7 +30,7 @@ export async function GET(): Promise<ImageResponse> {
             width: 40,
             height: 40,
             borderRadius: 10,
-            background: "linear-gradient(135deg, #C5A572, #7C3AED)",
+            background: "linear-gradient(135deg, #F0B429, #7C3AED)",
           }}
         />
         <span
@@ -41,15 +41,15 @@ export async function GET(): Promise<ImageResponse> {
             letterSpacing: "-0.5px",
           }}
         >
-          AI<span style={{ color: "#C5A572" }}>for</span>CEO
+          AI<span style={{ color: "#F0B429" }}>for</span>CEO
         </span>
         <div
           style={{
             marginLeft: 16,
             padding: "4px 12px",
             borderRadius: 20,
-            border: "1px solid rgba(197,165,114,0.4)",
-            color: "#C5A572",
+            border: "1px solid rgba(240,180,41,0.4)",
+            color: "#F0B429",
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: "0.08em",
@@ -72,7 +72,7 @@ export async function GET(): Promise<ImageResponse> {
         >
           Your AI C-Suite.
           <br />
-          <span style={{ color: "#C5A572" }}>Deployed in 30 minutes.</span>
+          <span style={{ color: "#F0B429" }}>Deployed in 30 minutes.</span>
         </div>
         <div
           style={{

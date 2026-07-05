@@ -17,7 +17,7 @@ const EXECUTIVES = [
   { role: "CMO", name: "Maya", color: "#F96167" },
   { role: "COO", name: "Owen", color: "#2A9D8F" },
   { role: "CFO", name: "Felix", color: "#5566B5" },
-  { role: "CEO", name: "Eden", color: "#C5A572" },
+  { role: "CEO", name: "Eden", color: "#F0B429" },
   { role: "CTO", name: "Tariq", color: "#0096C7" },
   { role: "CoS", name: "Aria", color: "#7C3AED" },
 ] as const;
@@ -59,7 +59,7 @@ const EXEC_DETAIL = [
   {
     role: "CEO",
     name: "Eden",
-    color: "#C5A572",
+    color: "#F0B429",
     headline: "Strategy briefed every morning.",
     bullets: [
       "Daily 7am brief: numbers, priorities, risks",
@@ -96,7 +96,7 @@ const SURFACE = "rgba(255,255,255,0.04)";
 const BORDER = "rgba(255,255,255,0.09)";
 const TEXT = "#f0f2f7";
 const MUTED = "rgba(240,242,247,0.45)";
-const GOLD = "#c5a572";
+const GOLD = "#F0B429";
 
 export default function Home() {
   return (
@@ -313,8 +313,8 @@ export default function Home() {
             maxWidth: 560,
             width: "100%",
             borderRadius: 16,
-            background: "rgba(197,165,114,0.06)",
-            border: "1px solid rgba(197,165,114,0.2)",
+            background: "rgba(240,180,41,0.06)",
+            border: "1px solid rgba(240,180,41,0.2)",
             padding: "18px 24px",
             display: "flex",
             alignItems: "center",
@@ -594,7 +594,7 @@ export default function Home() {
                     fontSize: 10,
                     fontWeight: 700,
                     color: GOLD,
-                    background: "rgba(197,165,114,0.1)",
+                    background: "rgba(240,180,41,0.1)",
                     padding: "3px 8px",
                     borderRadius: 999,
                   }}
@@ -651,8 +651,8 @@ export default function Home() {
           style={{
             borderRadius: 24,
             padding: "72px 24px",
-            background: "rgba(197,165,114,0.05)",
-            border: "1px solid rgba(197,165,114,0.15)",
+            background: "rgba(240,180,41,0.05)",
+            border: "1px solid rgba(240,180,41,0.15)",
           }}
         >
           <h2

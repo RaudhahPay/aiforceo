@@ -9,7 +9,7 @@ const D = {
   panel: "#111827",
   panel2: "#1a2236",
   line: "#1e293b",
-  gold: "#c5a572",
+  gold: "#F0B429",
   text: "#e8edf6",
   dim: "#8597b8",
   green: "#22c55e",
