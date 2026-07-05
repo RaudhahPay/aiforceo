@@ -13,7 +13,6 @@ const INITIAL_MESSAGES: Msg[] = [
   },
 ];
 
-// Render message content with markdown-style links: [text](url)
 function MessageContent({ content }: { content: string }) {
   const parts = content.split(/(\[[^\]]+\]\([^)]+\))/g);
   return (
@@ -26,7 +25,7 @@ function MessageContent({ content }: { content: string }) {
               key={i}
               href={match[2]}
               className="underline font-semibold"
-              style={{ color: "#7C3AED" }}
+              style={{ color: "#c5a572" }}
             >
               {match[1]}
             </Link>
@@ -38,7 +37,159 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
-export function ProspectChat() {
+function ChatCore({
+  messages,
+  input,
+  setInput,
+  streaming,
+  send,
+  inputRef,
+  bottomRef,
+  dark,
+}: {
+  messages: Msg[];
+  input: string;
+  setInput: (v: string) => void;
+  streaming: boolean;
+  send: () => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
+  dark?: boolean;
+}) {
+  const bg = dark ? "rgba(255,255,255,0.06)" : "var(--soft)";
+  const userBg = dark ? "rgba(197,165,114,0.15)" : "var(--ink)";
+  const userColor = dark ? "#c5a572" : "#fff";
+  const textColor = dark ? "rgba(240,242,247,0.9)" : "var(--ink)";
+  const mutedColor = dark ? "rgba(240,242,247,0.45)" : "var(--muted)";
+
+  return (
+    <>
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+        style={{ minHeight: 0 }}
+      >
+        {messages.map((m, i) => {
+          const isUser = m.role === "user";
+          const isLastAssistant =
+            !isUser && i === messages.length - 1 && streaming;
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: isUser ? "flex-end" : "flex-start",
+              }}
+            >
+              {!isUser && (
+                <div
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg,#7C3AED,#A855F7)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: "#fff",
+                    flexShrink: 0,
+                    marginRight: 8,
+                    marginTop: 2,
+                  }}
+                >
+                  A
+                </div>
+              )}
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 14,
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  maxWidth: "82%",
+                  background: isUser ? userBg : bg,
+                  color: isUser ? userColor : textColor,
+                }}
+              >
+                {isLastAssistant && !m.content ? (
+                  <span style={{ color: mutedColor }}>…</span>
+                ) : (
+                  <MessageContent content={m.content} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+      <div
+        style={{
+          padding: "12px 16px",
+          borderTop: dark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid var(--line)",
+          flexShrink: 0,
+        }}
+      >
+        <form
+          style={{ display: "flex", gap: 8, alignItems: "center" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask anything…"
+            disabled={streaming}
+            style={{
+              flex: 1,
+              fontSize: 13,
+              borderRadius: 10,
+              border: dark
+                ? "1px solid rgba(255,255,255,0.1)"
+                : "1px solid var(--line)",
+              padding: "9px 14px",
+              outline: "none",
+              background: dark ? "rgba(255,255,255,0.05)" : "#fff",
+              color: dark ? "#f0f2f7" : "var(--ink)",
+            }}
+          />
+          <button
+            type="submit"
+            disabled={streaming || !input.trim()}
+            aria-label="Send"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#7C3AED",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              border: "none",
+              cursor: streaming || !input.trim() ? "not-allowed" : "pointer",
+              opacity: streaming || !input.trim() ? 0.4 : 1,
+              transition: "opacity 0.15s",
+              flexShrink: 0,
+            }}
+          >
+            ↑
+          </button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+export function ProspectChat({ inline = false }: { inline?: boolean }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
@@ -47,16 +198,21 @@ export function ProspectChat() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
+    if (open || inline) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      inputRef.current?.focus();
+      if (open) inputRef.current?.focus();
     }
-  }, [open, messages]);
+  }, [open, inline, messages]);
+
+  function handleInputFocus() {
+    if (inline && !open) setOpen(true);
+  }
 
   async function send() {
     const text = input.trim();
     if (!text || streaming) return;
     setInput("");
+    if (inline) setOpen(true);
 
     const userMsg: Msg = { role: "user", content: text };
     const nextMessages: Msg[] = [...messages, userMsg];
@@ -113,9 +269,164 @@ export function ProspectChat() {
     }
   }
 
+  // Inline mode — embeds in the page, expands on interaction
+  if (inline) {
+    return (
+      <div style={{ width: "100%", maxWidth: 620 }}>
+        {open && (
+          <div
+            style={{
+              borderRadius: "18px 18px 0 0",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderBottom: "none",
+              height: 280,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <ChatCore
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              streaming={streaming}
+              send={send}
+              inputRef={inputRef}
+              bottomRef={bottomRef}
+              dark
+            />
+          </div>
+        )}
+        {!open && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void send();
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0,
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 999,
+              padding: "6px 6px 6px 22px",
+              transition: "border-color 0.2s",
+            }}
+            onFocusCapture={() => {
+              if (!open) setOpen(true);
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onFocus={handleInputFocus}
+              placeholder="Ask your AI C-Suite anything…"
+              disabled={streaming}
+              style={{
+                flex: 1,
+                fontSize: 15,
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "#f0f2f7",
+                caretColor: "#c5a572",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={streaming || !input.trim()}
+              aria-label="Send"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: input.trim() ? "#c5a572" : "rgba(255,255,255,0.1)",
+                color: input.trim() ? "#0a0a0f" : "rgba(240,242,247,0.4)",
+                fontSize: 16,
+                fontWeight: 700,
+                border: "none",
+                cursor: streaming || !input.trim() ? "default" : "pointer",
+                transition: "background 0.2s, color 0.2s",
+                flexShrink: 0,
+              }}
+            >
+              ↑
+            </button>
+          </form>
+        )}
+        {open && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void send();
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0,
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderTop: "none",
+              borderRadius: "0 0 999px 999px",
+              padding: "6px 6px 6px 22px",
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Reply to Aria…"
+              disabled={streaming}
+              style={{
+                flex: 1,
+                fontSize: 15,
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "#f0f2f7",
+                caretColor: "#c5a572",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={streaming || !input.trim()}
+              aria-label="Send"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: input.trim() ? "#c5a572" : "rgba(255,255,255,0.1)",
+                color: input.trim() ? "#0a0a0f" : "rgba(240,242,247,0.4)",
+                fontSize: 16,
+                fontWeight: 700,
+                border: "none",
+                cursor: streaming || !input.trim() ? "default" : "pointer",
+                transition: "background 0.2s, color 0.2s",
+                flexShrink: 0,
+              }}
+            >
+              ↑
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  }
+
+  // Floating mode — bottom-right widget
   return (
     <>
-      {/* Floating trigger button */}
       <button
         onClick={() => setOpen((o) => !o)}
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full text-white font-semibold text-sm shadow-2xl transition-all hover:scale-105 active:scale-95"
@@ -131,102 +442,101 @@ export function ProspectChat() {
         {open ? "Close" : "Chat with Aria"}
       </button>
 
-      {/* Chat panel */}
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-50 rounded-2xl bg-white shadow-2xl flex flex-col"
+          className="fixed bottom-24 right-6 z-50 rounded-2xl flex flex-col"
           style={{
-            width: 320,
-            height: 384,
-            border: "1px solid var(--line)",
-            boxShadow: "0 24px 64px rgba(15,23,41,.18)",
+            width: 340,
+            height: 420,
+            background: "#0d0f17",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 24px 64px rgba(0,0,0,.6)",
           }}
         >
-          {/* Header */}
           <div
-            className="flex items-center justify-between px-4 py-3 rounded-t-2xl shrink-0"
-            style={{ background: "linear-gradient(135deg,#7C3AED,#A855F7)" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 16px",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              flexShrink: 0,
+            }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-[11px] font-bold text-white">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg,#7C3AED,#A855F7)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: "#fff",
+                }}
+              >
                 A
               </div>
               <div>
-                <p className="text-white text-xs font-bold leading-tight">
+                <p
+                  style={{
+                    color: "#f0f2f7",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
                   Aria
                 </p>
-                <p className="text-white/70 text-[10px]">AI Chief of Staff</p>
+                <p
+                  style={{
+                    color: "rgba(240,242,247,0.45)",
+                    fontSize: 11,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  AI Chief of Staff
+                </p>
               </div>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-white/70 hover:text-white text-lg leading-none w-6 h-6 flex items-center justify-center"
               aria-label="Close"
+              style={{
+                color: "rgba(240,242,247,0.45)",
+                fontSize: 20,
+                lineHeight: 1,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 4,
+              }}
             >
               ×
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5">
-            {messages.map((m, i) => {
-              const isUser = m.role === "user";
-              const isLastAssistant =
-                !isUser && i === messages.length - 1 && streaming;
-              return (
-                <div
-                  key={i}
-                  className="flex"
-                  style={{ justifyContent: isUser ? "flex-end" : "flex-start" }}
-                >
-                  <div
-                    className="px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[85%]"
-                    style={{
-                      background: isUser ? "var(--ink)" : "var(--soft)",
-                      color: isUser ? "#fff" : "var(--ink)",
-                    }}
-                  >
-                    {isLastAssistant && !m.content ? (
-                      <span className="text-[var(--muted)]">…</span>
-                    ) : (
-                      <MessageContent content={m.content} />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Input */}
-          <div className="px-3 py-2.5 border-t border-[var(--line)] shrink-0">
-            <form
-              className="flex gap-2 items-center"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void send();
-              }}
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask anything…"
-                disabled={streaming}
-                className="flex-1 text-xs rounded-lg border border-[var(--line)] px-3 py-2 outline-none bg-white"
-                style={{ fontSize: 12 }}
-              />
-              <button
-                type="submit"
-                disabled={streaming || !input.trim()}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 transition-opacity disabled:opacity-40"
-                style={{ background: "#7C3AED" }}
-                aria-label="Send"
-              >
-                →
-              </button>
-            </form>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+            }}
+          >
+            <ChatCore
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              streaming={streaming}
+              send={send}
+              inputRef={inputRef}
+              bottomRef={bottomRef}
+              dark
+            />
           </div>
         </div>
       )}
