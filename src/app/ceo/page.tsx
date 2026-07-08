@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { listAccessibleEntities } from "@/lib/ceo-dashboard/access";
+import {
+  listAccessibleEntities,
+  resolveGroupHq,
+} from "@/lib/ceo-dashboard/access";
 import {
   ventureHealth,
   type KpiForHealth,
@@ -56,8 +59,12 @@ export default async function CeoGroupOverviewPage() {
   }
   const ctx = await getCurrentWorkspace();
   if (!ctx) redirect("/onboarding");
+  const hq = await resolveGroupHq(user.id, {
+    id: ctx.workspace.id,
+    name: ctx.workspace.name,
+  });
 
-  const entities = await listAccessibleEntities(user.id, ctx.workspace.id);
+  const entities = await listAccessibleEntities(user.id, hq.id);
   const admin = createSupabaseAdminClient();
   const month = periodStartFor(new Date(), "monthly");
   const ids = entities.map((e) => e.id);
@@ -86,7 +93,7 @@ export default async function CeoGroupOverviewPage() {
         admin
           .from("ceo_group_debt_service")
           .select("*")
-          .eq("org_id", ctx.workspace.id),
+          .eq("org_id", hq.id),
         admin
           .from("ceo_red_actions")
           .select("*")
@@ -236,7 +243,7 @@ export default async function CeoGroupOverviewPage() {
               marginBottom: 6,
             }}
           >
-            {ctx.workspace.name} — CEO Command Center
+            {hq.name} — CEO Command Center
           </div>
           <h1
             style={{

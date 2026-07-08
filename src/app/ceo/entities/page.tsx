@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { requireUser, AuthError } from "@/lib/auth/require";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { assertOrgAdmin } from "@/lib/ceo-dashboard/access";
+import { assertOrgAdmin, resolveGroupHq } from "@/lib/ceo-dashboard/access";
 import type { CeoEntity, CeoRole } from "@/lib/ceo-dashboard/types";
 import { EntitiesClient } from "./EntitiesClient";
 
@@ -27,8 +27,13 @@ export default async function CeoEntitiesPage() {
   const ctx = await getCurrentWorkspace();
   if (!ctx) redirect("/onboarding");
 
+  const hq = await resolveGroupHq(user.id, {
+    id: ctx.workspace.id,
+    name: ctx.workspace.name,
+  });
+
   try {
-    await assertOrgAdmin(user.id, ctx.workspace.id);
+    await assertOrgAdmin(user.id, hq.id);
   } catch (e) {
     if (e instanceof AuthError) redirect("/ceo");
     throw e;
@@ -41,12 +46,12 @@ export default async function CeoEntitiesPage() {
       .select(
         "id, org_id, name, industry_type, currency, is_active, sort_weight",
       )
-      .eq("org_id", ctx.workspace.id)
+      .eq("org_id", hq.id)
       .order("sort_weight", { ascending: false }),
     admin
       .from("ceo_entity_roles")
       .select("id, role, entity_id, user_id")
-      .eq("org_id", ctx.workspace.id)
+      .eq("org_id", hq.id)
       .order("created_at"),
   ]);
 

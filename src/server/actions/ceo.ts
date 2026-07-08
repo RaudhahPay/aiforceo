@@ -14,7 +14,11 @@ import { revalidatePath } from "next/cache";
 import { requireUser, AuthError } from "@/lib/auth/require";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentWorkspace } from "@/lib/workspace";
-import { assertEntityRole, assertOrgAdmin } from "@/lib/ceo-dashboard/access";
+import {
+  assertEntityRole,
+  assertOrgAdmin,
+  resolveGroupHq,
+} from "@/lib/ceo-dashboard/access";
 import {
   evaluateEntityKpis,
   sweepEscalations,
@@ -114,13 +118,17 @@ export async function createEntity(input: unknown): Promise<ActionResult> {
     const user = await requireUser();
     const ctx = await getCurrentWorkspace();
     if (!ctx) throw new AuthError("NOT_FOUND", "No workspace");
-    await assertOrgAdmin(user.id, ctx.workspace.id);
+    const hq = await resolveGroupHq(user.id, {
+      id: ctx.workspace.id,
+      name: ctx.workspace.name,
+    });
+    await assertOrgAdmin(user.id, hq.id);
     const data = entitySchema.parse(input);
     const admin = createSupabaseAdminClient();
     const { error } = await admin.from("ceo_entities").insert({
       ...data,
       currency: data.currency.toUpperCase(),
-      org_id: ctx.workspace.id,
+      org_id: hq.id,
       created_by: user.id,
     });
     if (error) throw new Error(error.message);
@@ -175,7 +183,11 @@ export async function assignRole(input: unknown): Promise<ActionResult> {
     const user = await requireUser();
     const ctx = await getCurrentWorkspace();
     if (!ctx) throw new AuthError("NOT_FOUND", "No workspace");
-    await assertOrgAdmin(user.id, ctx.workspace.id);
+    const hq = await resolveGroupHq(user.id, {
+      id: ctx.workspace.id,
+      name: ctx.workspace.name,
+    });
+    await assertOrgAdmin(user.id, hq.id);
     const data = roleSchema.parse(input);
 
     const orgWide = data.role === "group_ceo" || data.role === "admin";
@@ -201,7 +213,7 @@ export async function assignRole(input: unknown): Promise<ActionResult> {
     const { error } = await admin.from("ceo_entity_roles").upsert(
       {
         user_id: profile.id,
-        org_id: ctx.workspace.id,
+        org_id: hq.id,
         entity_id: data.entity_id,
         role: data.role,
         created_by: user.id,

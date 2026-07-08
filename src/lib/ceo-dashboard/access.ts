@@ -106,6 +106,71 @@ export async function assertOrgAdmin(
   throw new AuthError("FORBIDDEN", "Org admin access required");
 }
 
+export type GroupHq = { id: string; name: string };
+
+/**
+ * Resolve the user's group HQ workspace for the CEO Dashboard.
+ *
+ * aiforceo lets one user own/select several workspaces (one per business),
+ * but the CEO command center is anchored to ONE group workspace holding the
+ * ceo_entities. Following the *selected* workspace made /ceo show whatever
+ * business the switcher was on (e.g. "WAROBOT — 0 ventures") instead of the
+ * group. So: among all workspaces the user owns or holds any ceo role in,
+ * pick the one with the most active ventures; fall back to the currently
+ * selected workspace when none has ventures yet (first-run).
+ */
+export async function resolveGroupHq(
+  userId: string,
+  fallback: GroupHq,
+): Promise<GroupHq> {
+  const admin = createSupabaseAdminClient();
+  const [{ data: owned }, { data: roleRows }] = await Promise.all([
+    admin.from("workspaces").select("id, name").eq("owner_id", userId),
+    admin.from("ceo_entity_roles").select("org_id").eq("user_id", userId),
+  ]);
+
+  const candidates = new Map<string, string | null>();
+  for (const w of owned ?? []) candidates.set(w.id, w.name);
+  for (const r of roleRows ?? []) {
+    if (!candidates.has(r.org_id)) candidates.set(r.org_id, null);
+  }
+  if (candidates.size === 0) return fallback;
+
+  const ids = [...candidates.keys()];
+  const { data: entityRows } = await admin
+    .from("ceo_entities")
+    .select("org_id")
+    .in("org_id", ids)
+    .eq("is_active", true);
+
+  const counts = new Map<string, number>();
+  for (const e of entityRows ?? []) {
+    counts.set(e.org_id, (counts.get(e.org_id) ?? 0) + 1);
+  }
+  if (counts.size === 0) return fallback;
+
+  let bestId = fallback.id;
+  let bestCount = counts.get(fallback.id) ?? 0;
+  for (const [orgId, n] of counts) {
+    if (n > bestCount) {
+      bestId = orgId;
+      bestCount = n;
+    }
+  }
+  if (bestId === fallback.id) return fallback;
+
+  let name = candidates.get(bestId) ?? null;
+  if (!name) {
+    const { data: w } = await admin
+      .from("workspaces")
+      .select("name")
+      .eq("id", bestId)
+      .single();
+    name = w?.name ?? "Group";
+  }
+  return { id: bestId, name: name ?? "Group" };
+}
+
 /** All entities in the org the caller can see (owner/org-wide → all). */
 export async function listAccessibleEntities(
   userId: string,
