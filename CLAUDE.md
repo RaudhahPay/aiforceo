@@ -47,6 +47,7 @@ pnpm ci           # all four in order
 | `docs/PRD.md` | Product requirements |
 | `docs/ARCHITECTURE.md` | System design + decision rationale |
 | `docs/DECISION_LOG.md` | Every non-obvious technical decision |
+| `docs/ceo-dashboard/CLAUDE.md` | CEO Business Dashboard module guide (read before touching `src/app/ceo`, `src/lib/ceo-dashboard`, or `ceo_` migrations) |
 
 ## Working in This Repo
 - One PR per small unit of work: branch → PR → CI green → human review → merge

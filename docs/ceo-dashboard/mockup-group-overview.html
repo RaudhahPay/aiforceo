@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Dashboard — Group Overview (Mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D1420; --surface:#151F30; --surface2:#1B2740;
+    --line:rgba(233,238,247,.09);
+    --text:#E9EEF7; --muted:#8DA0BA;
+    --gold:#C8A24B;
+    --green:#2EA96F; --amber:#E3A93C; --red:#E05252;
+    --green-dim:rgba(46,169,111,.14); --amber-dim:rgba(227,169,60,.14); --red-dim:rgba(224,82,82,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink);color:var(--text);font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 100;line-height:1.45;padding:28px 20px 60px}
+  .wrap{max-width:1180px;margin:0 auto}
+  .num{font-family:'Spline Sans Mono',monospace;font-variant-numeric:tabular-nums}
+
+  /* Header */
+  header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:6px}
+  h1{font-variation-settings:'wdth' 118;font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.01em}
+  .date{color:var(--muted);font-size:13px;margin-top:4px}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .toggle button{background:transparent;border:0;color:var(--muted);font:600 12px 'Archivo';padding:9px 15px;cursor:pointer;letter-spacing:.06em}
+  .toggle button.active{background:var(--gold);color:#101318}
+  .toggle button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+
+  /* Headline stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .stat .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .stat .value{font-size:24px;font-weight:600}
+  .stat .sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .stat .sub.up{color:var(--green)} .stat .sub.down{color:var(--red)}
+  .stat.alert{border-color:rgba(224,82,82,.45);background:linear-gradient(0deg,var(--red-dim),var(--red-dim)),var(--surface)}
+  .stat.alert .value{color:var(--red)}
+
+  /* Group Pulse — signature element */
+  .pulse-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:26px}
+  .pulse-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .section-title{font-variation-settings:'wdth' 112;font-weight:700;font-size:15px;letter-spacing:.02em}
+  .pulse-note{font-size:12px;color:var(--muted)}
+  .pulse{display:flex;height:34px;border-radius:8px;overflow:hidden;gap:2px}
+  .pulse span{display:block;height:100%}
+  .pulse span.g{background:var(--green)} .pulse span.y{background:var(--amber)} .pulse span.r{background:var(--red)}
+  .legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+  /* Venture grid */
+  .grid-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .sort-note{font-size:12px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:30px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .card.red{border-color:rgba(224,82,82,.5)}
+  .card.yellow{border-color:rgba(227,169,60,.4)}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .vname{font-weight:700;font-size:15px}
+  .vtag{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;padding:5px 10px;border-radius:999px;white-space:nowrap}
+  .badge svg{width:10px;height:10px}
+  .badge.g{background:var(--green-dim);color:var(--green)}
+  .badge.y{background:var(--amber-dim);color:var(--amber)}
+  .badge.r{background:var(--red-dim);color:var(--red)}
+  .metric-row{display:flex;justify-content:space-between;font-size:12.5px}
+  .metric-row .k{color:var(--muted)} .metric-row .v{font-weight:600}
+  .bar{height:5px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .flagline{font-size:12px;padding-top:8px;border-top:1px solid var(--line)}
+  .flagline.r{color:var(--red)} .flagline.y{color:var(--amber)} .flagline.g{color:var(--muted)}
+
+  /* Red action log */
+  .log{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .log-item{display:grid;grid-template-columns:10px 1fr auto;gap:14px;align-items:start;padding:13px 0;border-bottom:1px solid var(--line)}
+  .log-item:last-child{border-bottom:0}
+  .log-dot{width:10px;height:10px;border-radius:50%;background:var(--red);margin-top:5px}
+  .log-dot.esc{box-shadow:0 0 0 4px var(--red-dim)}
+  .log-title{font-weight:600;font-size:14px}
+  .log-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .due{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+  .due strong{display:block;color:var(--text);font-weight:600}
+  .due.esc strong{color:var(--red)}
+
+  footer{margin-top:26px;text-align:center;font-size:11.5px;color:var(--muted);letter-spacing:.05em}
+
+  @media (max-width:720px){
+    .stats{grid-template-columns:1fr 1fr}
+    header{align-items:flex-start}
+    .log-item{grid-template-columns:10px 1fr}
+    .due{text-align:left;grid-column:2}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{transition:transform .15s ease,border-color .15s ease}
+    .card:hover{transform:translateY(-2px)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="eyebrow">White Unicorn Ventures — CEO Command Center</div>
+      <h1>Assalamualaikum, Coach</h1>
+      <div class="date">Wednesday, 8 July 2026 · 9 ventures reporting · <span class="num">4</span> red KPIs need you</div>
+    </div>
+    <div class="toggle" role="tablist" aria-label="Period">
+      <button role="tab">Day</button>
+      <button role="tab">Week</button>
+      <button role="tab" class="active" aria-selected="true">Month</button>
+      <button role="tab">Quarter</button>
+      <button role="tab">Year</button>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Group headline numbers">
+    <div class="stat">
+      <div class="label">Group Sales MTD</div>
+      <div class="value num">RM 6.42M</div>
+      <div class="sub down">93% of RM 6.90M target</div>
+    </div>
+    <div class="stat">
+      <div class="label">Group Cash Position</div>
+      <div class="value num">RM 11.3M</div>
+      <div class="sub up">Runway 6.4 months OPEX</div>
+    </div>
+    <div class="stat">
+      <div class="label">Monthly Debt Service</div>
+      <div class="value num">RM 486K</div>
+      <div class="sub">Next payment: 15 Jul, RM 128K</div>
+    </div>
+    <div class="stat alert">
+      <div class="label">Red KPIs Open</div>
+      <div class="value num">4</div>
+      <div class="sub down">1 escalated past 48 hours</div>
+    </div>
+  </section>
+
+  <section class="pulse-card" aria-label="Group pulse">
+    <div class="pulse-head">
+      <div class="section-title">Group Pulse</div>
+      <div class="pulse-note">Segment width = share of group revenue · colour = venture health</div>
+    </div>
+    <div class="pulse" role="img" aria-label="Revenue-weighted health strip: Ahmad's red, Brainy Bunch green, DRE Coffee green, Andorra green, EzPOS yellow, BroHotChicken yellow, SRIIBB yellow, Goldify red, HostDaddy green">
+      <span class="r" style="width:26%" title="Ahmad's HotChicken"></span>
+      <span class="g" style="width:24%" title="Brainy Bunch"></span>
+      <span class="g" style="width:11%" title="DRE Coffee"></span>
+      <span class="g" style="width:14%" title="Andorra Hospital"></span>
+      <span class="y" style="width:8%" title="EzPOS"></span>
+      <span class="y" style="width:6%" title="BroHotChicken!"></span>
+      <span class="y" style="width:5%" title="SRIIBB"></span>
+      <span class="r" style="width:3%" title="Goldify"></span>
+      <span class="g" style="width:3%" title="HostDaddy.ai"></span>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i>Healthy — 5 ventures</span>
+      <span><i class="dot" style="background:var(--amber)"></i>Watch — 3 ventures</span>
+      <span><i class="dot" style="background:var(--red)"></i>Action needed — 2 ventures</span>
+    </div>
+  </section>
+
+  <div class="grid-head">
+    <div class="section-title">Ventures</div>
+    <div class="sort-note">Sorted red first — worst news at the top, always</div>
+  </div>
+
+  <section class="grid" aria-label="Venture health cards">
+
+    <article class="card red">
+      <div class="card-top">
+        <div><div class="vname">Ahmad's HotChicken</div><div class="vtag">F&amp;B · 14 outlets</div></div>
+        <span class="badge r">● RED</span>
+      </div>
+      <div class="metric-row"><span class="k">Sales MTD</span><span class="v num">RM 1.84M · 92%</span></div>
+      <div class="bar"><i style="width:92%;background:var(--amber)"></i></div>
+      <div class="metric-row"><span class="k">Food cost</span><span class="v num" style="color:var(--red)">34.2% vs 30.0%</span></div>
+      <div class="flagline r">Escalated: food cost red for 3 days — owner Ezlin</div>
+    </article>
+
+    <article class="card red">
+      <div class="card-top">
+        <div><div class="vname">Goldify</div><div class="vtag">Fintech</div></div>
+        <span class="badge r">● RED</span>
+      </div>
+      <div class="metric-row"><span class="k">Revenue MTD</span><span class="v num">RM 96K · 64%</span></div>
+      <div class="bar"><i style="width:64%;background:var(--red)"></i></div>
+      <div class="metric-row"><span class="k">Cash runway</span><span class="v num" style="color:var(--red)">2.8 months</span></div>
+      <div class="flagline r">Runway below 3-month floor — funding decision needed</div>
+    </article>
+
+    <article class="card yellow">
+      <div class="card-top">
+        <div><div class="vname">BroHotChicken!</div><div class="vtag">F&amp;B · 2 outlets</div></div>
+        <span class="badge y">● WATCH</span>
+      </div>
+      <div class="metric-row"><span class="k">Sales MTD</span><span class="v num">RM 212K · 78%</span></div>
+      <div class="bar"><i style="width:78%;background:var(--amber)"></i></div>
+      <div class="metric-row"><span class="k">Active strategies</span><span class="v num" style="color:var(--amber)">7 of 10 min</span></div>
+      <div class="flagline y">Below the 10-strategy rule — marketing plan gap</div>
+    </article>
+
+    <article class="card yellow">
+      <div class="card-top">
+        <div><div class="vname">SRIIBB</div><div class="vtag">Education · Pre-launch</div></div>
+        <span class="badge y">● WATCH</span>
+      </div>
+      <div class="metric-row"><span class="k">Registrations</span><span class="v num">89 · 74%</span></div>
+      <div class="bar"><i style="width:74%;background:var(--amber)"></i></div>
+      <div class="metric-row"><span class="k">Launch runway</span><span class="v num">26 weeks to Jan 2027</span></div>
+      <div class="flagline y">Registration pace behind curve for January launch</div>
+    </article>
+
+    <article class="card yellow">
+      <div class="card-top">
+        <div><div class="vname">EzPOS</div><div class="vtag">Tech / SaaS</div></div>
+        <span class="badge y">● WATCH</span>
+      </div>
+      <div class="metric-row"><span class="k">MRR</span><span class="v num">RM 84K · 97%</span></div>
+      <div class="bar"><i style="width:97%;background:var(--green)"></i></div>
+      <div class="metric-row"><span class="k">Churn</span><span class="v num" style="color:var(--amber)">4.1% vs 3.0%</span></div>
+      <div class="flagline y">Churn above threshold two months running</div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <div><div class="vname">Brainy Bunch Group</div><div class="vtag">Education · 130+ campuses</div></div>
+        <span class="badge g">● HEALTHY</span>
+      </div>
+      <div class="metric-row"><span class="k">Enrolment</span><span class="v num">96% of capacity</span></div>
+      <div class="bar"><i style="width:96%;background:var(--green)"></i></div>
+      <div class="metric-row"><span class="k">Fee collection</span><span class="v num">91%</span></div>
+      <div class="flagline g">All KPIs green or on target</div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <div><div class="vname">DRE Coffee</div><div class="vtag">F&amp;B · Cyberjaya</div></div>
+        <span class="badge g">● HEALTHY</span>
+      </div>
+      <div class="metric-row"><span class="k">Sales MTD</span><span class="v num">RM 118K · 112%</span></div>
+      <div class="bar"><i style="width:100%;background:var(--green)"></i></div>
+      <div class="metric-row"><span class="k">App members</span><span class="v num">+412 this month</span></div>
+      <div class="flagline g">Beating target beside the giants</div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <div><div class="vname">Andorra Hospital</div><div class="vtag">Healthcare</div></div>
+        <span class="badge g">● HEALTHY</span>
+      </div>
+      <div class="metric-row"><span class="k">Occupancy</span><span class="v num">82%</span></div>
+      <div class="bar"><i style="width:82%;background:var(--green)"></i></div>
+      <div class="metric-row"><span class="k">Patient NPS</span><span class="v num">+68</span></div>
+      <div class="flagline g">All KPIs green or on target</div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <div><div class="vname">HostDaddy.ai</div><div class="vtag">Tech / SaaS</div></div>
+        <span class="badge g">● HEALTHY</span>
+      </div>
+      <div class="metric-row"><span class="k">MRR</span><span class="v num">RM 31K · 104%</span></div>
+      <div class="bar"><i style="width:100%;background:var(--green)"></i></div>
+      <div class="metric-row"><span class="k">Uptime</span><span class="v num">99.97%</span></div>
+      <div class="flagline g">All KPIs green or on target</div>
+    </article>
+
+  </section>
+
+  <section class="log" aria-label="Red KPI action log">
+    <div class="pulse-head">
+      <div class="section-title">Red KPI Action Log</div>
+      <div class="pulse-note">Every red gets an owner and a 48-hour clock</div>
+    </div>
+
+    <div class="log-item">
+      <div class="log-dot esc"></div>
+      <div>
+        <div class="log-title">Ahmad's — Food cost 34.2% vs 30.0% target</div>
+        <div class="log-meta">Owner: Ezlin · Action: supplier price review + portioning audit at 3 worst outlets</div>
+      </div>
+      <div class="due esc"><strong>ESCALATED</strong>62 hours open</div>
+    </div>
+
+    <div class="log-item">
+      <div class="log-dot"></div>
+      <div>
+        <div class="log-title">Goldify — Cash runway 2.8 months, below 3-month floor</div>
+        <div class="log-meta">Owner: Coach Fadzil · Action: fund / freeze / fold decision memo</div>
+      </div>
+      <div class="due"><strong>Due Fri 10 Jul</strong>31 hours left</div>
+    </div>
+
+    <div class="log-item">
+      <div class="log-dot"></div>
+      <div>
+        <div class="log-title">Group — Sales MTD at 93%, gap RM 480K to target</div>
+        <div class="log-meta">Owner: All venture CEOs · Action: mid-month push plan per venture by Thursday standup</div>
+      </div>
+      <div class="due"><strong>Due Thu 9 Jul</strong>20 hours left</div>
+    </div>
+
+    <div class="log-item">
+      <div class="log-dot"></div>
+      <div>
+        <div class="log-title">BroHotChicken! — Active strategies at 7, below the 10 minimum</div>
+        <div class="log-meta">Owner: Marketing lead · Action: add 3 strategies from the 10x10 bank, budgeted and owned</div>
+      </div>
+      <div class="due"><strong>Due Sat 11 Jul</strong>3 days left</div>
+    </div>
+  </section>
+
+  <footer>MOCKUP · CEO Business Dashboard — Group Overview · aiforceo module · figures are illustrative</footer>
+</div>
+
+<script>
+  document.querySelectorAll('.toggle button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.toggle button').forEach(function(x){x.classList.remove('active');x.removeAttribute('aria-selected')});
+      b.classList.add('active');b.setAttribute('aria-selected','true');
+    });
+  });
+</script>
+</body>
+</html>
