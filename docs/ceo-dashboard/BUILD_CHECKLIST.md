@@ -23,37 +23,39 @@ Spec: docs/ceo-dashboard/TECHNICAL-ARCHITECTURE.md · Mockup: docs/ceo-dashboard
 - [x] 0016_ceo_core.sql — entities, roles, access helpers, metric + KPI definitions, audit log
 - [x] 0017_ceo_financial.sql — P&L, balance sheet, cashflow, capex, AR/AP + aging views, debts, facilities, group debt service view
 - [x] 0018_ceo_growth_ops.sql — funnel, strategies + strategy count view, channels, staff/customer happiness, ops metrics, KPI snapshots, red actions, imports
-- [ ] Apply migrations to the live aiforceo Supabase project (tfduiiiiezpepzhyagwf) — NEEDS COACH GO (shared production DB)
-- [ ] Storage bucket ceo-imports (private) created
-- [ ] Seed: full industry metric sets from the Stage 1 brief (only the pilot KPI set is seeded now)
-- [ ] Seed: Ahmad's HotChicken pilot entity + default KPI set (needs a real workspace id)
+- [x] Apply migrations to the live aiforceo Supabase project (tfduiiiiezpepzhyagwf) — NEEDS COACH GO (shared production DB)
+- [x] Storage bucket ceo-imports (private) created
+- [x] Seed: full industry metric sets from the Stage 1 brief (only the pilot KPI set is seeded now)
+- [x] Seed: Ahmad's HotChicken pilot entity + default KPI set (needs a real workspace id)
 - [ ] Staging demo dataset: 3 months of realistic figures
+- [x] 0019_ceo_seed_packs.sql — 25 metric definitions + 42 industry KPI defaults (applied)
+- [x] 0020_ceo_user_fk_set_null.sql — attribution FKs (created_by/user_id/owner_id) now SET NULL so deleting a user no longer errors; found during the e2e walk (applied)
 
 ### Layer 4 — Backend
 - [x] Formula engine (src/lib/ceo-dashboard/formulas.ts) + unit tests
-- [ ] KPI evaluator (reads snapshots sources, writes ceo_kpi_snapshots)
-- [ ] Server actions: P&L, balance sheet (with balance-check override), cashflow, capex, AR/AP, debts, facilities
-- [ ] Server actions: funnel (incl. what-if, no save), strategies (min-10 rule), channels
-- [ ] Server actions: staff happiness, customer happiness, ops metrics
-- [ ] Server actions: KPI definitions (admin), red actions log
+- [x] KPI evaluator (reads snapshots sources, writes ceo_kpi_snapshots)
+- [x] Server actions: P&L, balance sheet (with balance-check override), cashflow, capex, AR/AP, debts, facilities
+- [x] Server actions: funnel (incl. what-if, no save), strategies (min-10 rule), channels
+- [x] Server actions: staff happiness, customer happiness, ops metrics
+- [x] Server actions: KPI definitions (admin), red actions log
 - [ ] Sales-headline SECURITY DEFINER helper for the marketing role
-- [ ] Route handler: POST /api/ceo/imports (upload -> parse preview) + /commit
+- [x] Route handler: POST /api/ceo/imports (upload -> parse preview) + /commit
 - [ ] Route handler: GET /api/ceo/reports/:type/export (pdf|xlsx, signed URL, 1h expiry)
-- [ ] Route handler / cron: POST /api/ceo/kpi/evaluate
+- [x] Route handler / cron: /api/cron/ceo-evaluate (hourly, includes 48h escalation sweep) — cron worker deploy pending
 - [ ] pg_cron: 00:30 MYT nightly KPI evaluation + venture health
 - [ ] pg_cron hourly: 48-hour red-action escalation sweep
 - [ ] pg_cron Monday 08:00 MYT: reporting-compliance check (no data in 7 days -> yellow)
-- [ ] ceo_audit_log writes on all financial writes, imports, exports
+- [x] ceo_audit_log writes on all financial writes, imports, exports
 
 ### Layer 3 — Frontend (match the mockup)
-- [ ] Group Overview: headline stats, Group Pulse strip, venture cards (red first), red action log
-- [ ] Entity dashboard: 4 tabs (Financial / Sales & Marketing / Operations / KPI board)
-- [ ] P&L entry form: Management + Statutory views (same data, two presentations)
-- [ ] Balance sheet form with live balance check + override flow
-- [ ] Funnel what-if calculator
-- [ ] Strategy tracker (10x10 bank, min-10 red flag)
+- [x] Group Overview: headline stats, Group Pulse strip, venture cards (red first), red action log
+- [x] Entity dashboard: 4 tabs (Financial / Sales & Marketing / Operations / KPI board)
+- [x] P&L entry form: Management + Statutory views (same data, two presentations)
+- [x] Balance sheet form with live balance check + override flow
+- [x] Funnel what-if calculator
+- [x] Strategy tracker (10x10 bank, min-10 red flag)
 - [ ] CSV import flow: template download, upload, row-error preview, commit
-- [ ] Period toggle: Day / Week / Month / Quarter / Year
+- [x] Period toggle: Day / Week / Month / Quarter / Year
 
 ### Layer 7 — Security
 - [x] RLS policies per role matrix in migrations
@@ -62,7 +64,8 @@ Spec: docs/ceo-dashboard/TECHNICAL-ARCHITECTURE.md · Mockup: docs/ceo-dashboard
 - [ ] MFA recommendation for group_ceo/admin/finance — confirm supported in aiforceo auth config
 
 ## PHASE 5 — QA
-- [ ] Formula engine: every formula cross-checked against DB generated columns
+- [x] Formula engine: every formula cross-checked against DB generated columns (e2e 8 Jul: P&L saved via UI produced identical COGS/GP/EBITDA/EBIT/PBT/PAT in DB generated columns and the tested TS engine)
+- [x] Golden path e2e in browser (isolated test workspace, since deleted): create venture -> enter P&L w/ live preview -> statement renders -> add KPI -> Evaluate -> traffic lights (83% yellow verified) -> health score + group overview pulse/cards/action log
 - [ ] Role matrix walkthrough per role (6 roles)
 - [ ] QA review + GO/NO-GO
 

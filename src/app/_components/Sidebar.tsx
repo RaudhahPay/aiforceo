@@ -29,6 +29,7 @@ type ActivePage =
   | "saved"
   | "office"
   | "investor-pack"
+  | "ceo-dashboard"
   | AgentRole;
 
 const ROLES: AgentRole[] = ["aria", "cmo", "coo", "cfo", "ceo", "cto"];
@@ -147,6 +148,9 @@ export function Sidebar({
             <Item href="/command" active={active === "command"} icon="⌂">
               Command Centre
             </Item>
+            <Item href="/ceo" active={active === "ceo-dashboard"} icon="🚦">
+              CEO Dashboard
+            </Item>
             {allWorkspaces.length > 1 && (
               <Item href="/portfolio" active={active === "portfolio"} icon="📊">
                 Portfolio
@@ -168,7 +172,11 @@ export function Sidebar({
             <Item href="/agents" active={active === "agents"} icon="👥">
               AI Executives
             </Item>
-            <Item href="/dashboard" active={active === "dashboard" || active === "brief"} icon="📋">
+            <Item
+              href="/dashboard"
+              active={active === "dashboard" || active === "brief"}
+              icon="📋"
+            >
               Dashboard
             </Item>
           </Section>

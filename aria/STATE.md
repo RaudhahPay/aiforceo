@@ -32,11 +32,42 @@ Key decisions:
 - Committed Stage 3 + evaluator + actions (local, NOT pushed)
 - Supabase advisors: 3 WARNs on ceo_ helper fns are intentional (RLS needs authenticated EXECUTE; fns only reveal caller's own access). Pre-existing ERROR: brain_score SECURITY DEFINER view — fix exists in boss-unified (0035_fix_brain_score_security_invoker) but was never applied to prod; belongs to that thread, flagged to Coach
 
+## Same evening, second sweep (this session, commits 6eea47c / 6ec0940 / 889c8a8)
+TWO ARIA SESSIONS worked this repo in parallel; coordinated via session message.
+Split: "CEO Dashboard project" session owns ALL of src/app/ceo/ (UI); this session took everything else.
+
+Done by this session:
+- Commit 6eea47c: Stage 3 + formulas + evaluator + 28 server actions + docs (as recorded above)
+- Commit 6ec0940: 0019_ceo_seed_packs migration (APPLIED to prod — 25 catalog metrics, 42 industry-default KPI defs, idempotent partial unique index); CSV import (papaparse lib, strict ISO dates, row-numbered errors, all-or-nothing; finance-gated POST /api/ceo/import; GET returns header templates); private ceo-imports bucket CREATED in prod; /api/cron/ceo-evaluate (all entities x 5 granularities + 48h escalation sweep) wired into src/cron-worker.ts hourly; PILOT ENTITY Ahmads HotChicken seeded in prod under Coach's own workspace e0942e54 (fadzil@brainybunch.com; re-parent later if a dedicated White Unicorn workspace is made)
+- Commit 889c8a8: CF ai Phase 2 library — src/lib/cf-ai/ guardrails (tiers, people/deen force T3, kill-switch, spend cap, allowlist, advisor default, Malay-safe deen scan), analysts KIRA/JUAL/URUS (deterministic, missing-data = reporting finding), brief (composeGroupBrief + revenue-weighted group pulse + narrateBrief w/ deterministic fallback), getGroupBrief server action (owner/group_ceo/admin, audit-logged)
+- Gates at each commit: typecheck + lint clean, tests now 69/69
+
+## UI session landed (8 Jul 2026 — the "CEO Dashboard project" session)
+ALL /ceo UI DONE, e2e-verified in browser, NOT yet committed (files in working tree):
+- src/app/ceo/page.tsx — Group Overview per mockup, live data: headline stats (group sales MTD / cash / debt service / red KPIs), Group Pulse revenue-weighted strip, venture cards sorted red-first w/ worst-KPI flag line, Red KPI Action Log w/ 48h escalation display, empty state
+- src/app/ceo/entities/ — Ventures & Roles admin (create/archive ventures, revenue weight, assign 6 roles by email, org-wide vs per-venture scoping)
+- src/app/ceo/[entityId]/page.tsx — entity shell: D/W/M/Q/Y toggle + period prev/next + 4 tabs, all data fetched server-side after role check
+- tabs/FinancialTab.tsx — P&L statement (Management/Statutory toggle) + entry form w/ live computePnl preview; P&L history; Balance Sheet (two-column, live balance check, override+note flow); Cash Flow (in−out=net + entries); CAPEX; AR + AP w/ aging strips (current/30/60/90/90+); Other Debts; Bank Repayment Table w/ total debt service
+- tabs/MarketingTab.tsx — funnel chain (Reach×CR1=Prospects×CR2=Customers×AvgSale×Txn=Sales×GP%=GP−OPEX=EBITDA) as a LIVE what-if calculator + save; 10x10 strategy tracker w/ min-10 red badge + CPA/ROI; 12-channel analytics grid (FB/IG/LinkedIn/TikTok/Threads/Website/SEO/Email/WhatsApp/Telegram/Referral/Alliances) w/ CPL/ROI
+- tabs/OperationsTab.tsx — Staff Happiness (aggregates only, PDPA note), Customer Happiness, industry-generic ops metrics w/ inline entry + target coloring
+- tabs/KpiTab.tsx — health score + badge + Evaluate now; traffic-light board (red-first) w/ attainment bars; red-action logging (owner + deadline); KPI definitions manager
+- src/app/ceo/_components/ui.tsx shared primitives; Sidebar "CEO Dashboard" link (active key ceo-dashboard)
+- papaparse + @types/papaparse installed (their import route needed it); typecheck fix in their tests/ceo-dashboard.import.test.ts
+- 0020_ceo_user_fk_set_null.sql WRITTEN + APPLIED to prod: ceo_ attribution FKs to profiles now ON DELETE SET NULL (user deletion was blocked by ceo_audit_log; found in e2e). ceo_entity_roles.user_id stays CASCADE
+- E2E (isolated test user+workspace, both deleted after): venture create → P&L entry w/ live preview → statement + DB generated columns EXACT match to formula engine (COGS 30000/GP 70000/EBITDA 29000/EBIT 27500/26500/PBT 25000/PAT 22000) → KPI add → Evaluate → 83% YELLOW correct → health + group overview all live. Funnel what-if verified (90K sales / 18.5K EBITDA). Gates: typecheck/lint/tests 51 at the time (69 after their commits), build compiles all /ceo routes
+- NOTE: pilot entity duplicated — this session seeded Ahmad's HotChicken + 11 KPI defs under Coach's beforeb76@gmail.com workspace (cbda7fab), the other session seeded it under fadzil@brainybunch.com (e0942e54). Both are real; Coach to say which account he uses for the group view, then delete the other.
+
+## UI COMMITTED (3836762, local, not pushed)
+Per cross-session coordination + Coach's GO: full /ceo UI + Sidebar link + 0020 FK-fix
+migration landed as commit 3836762 (13 files, ~6.9k lines). Gates at commit: typecheck
+clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy safely.
+
 ## Next task
-1. Group overview screen /ceo per mockup (Group Pulse strip, red-first cards, red action log)
-2. Entity dashboard /ceo/[entityId] — 4 tabs (Financial / S&M / Ops / KPIs) + D/W/M/Q/Y switcher
-3. CSV import (papaparse) + ceo-imports bucket + 6 industry seed packs + pg_cron (rollups, 48h escalation) + pilot seed Ahmads HotChicken
-4. Then CF ai Phase 2 (Advisor): port AHMAD guardrail lib, KIRA/JUAL/URUS cabinet, Daily Brief, Ask CF ai
+1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear now
+2. CF ai UI: Daily Brief panel on /ceo + Ask CF ai (grounded chat) — AFTER the UI session lands, to avoid collisions
+3. Deploy: main app (new routes/actions) + cron worker redeploy (pnpm wrangler deploy --config wrangler-cron.jsonc) — do NOT deploy while the UI session has uncommitted files in the tree
+4. Coach enters real Ahmads numbers (or finance CSV import) → first real Daily Brief
+5. Phase 3 per CF-AI-GROUP-PLAN.md: recommendations + approval console + weekly board pack
 
 ## Open questions
 - Stage 1 Product Brief not in the zip — need it for full industry metric seed sets
