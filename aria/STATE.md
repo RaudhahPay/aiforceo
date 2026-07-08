@@ -129,3 +129,10 @@ commit cd4e0e3) live; tree was clean (feed work committed as faffc12/6353b95).
 - Duplicate pilot entity b13c6abb (beforeb76's workspace cbda7fab) DELETED (had only 11 auto KPI defs, zero data; cascade cleaned them)
 - Single source of truth now: entity 90128463 "Ahmads HotChicken" (fnb) under HQ; F&B industry-default KPI defs apply automatically
 - WHY COACH SAW "WAROBOT — CEO Command Center": /ceo is workspace-scoped via ai4c_active_ws cookie (last-used workspace). He must switch workspace to White Unicorn Ventures HQ at /workspaces
+
+## v2 TOPOLOGY LOCKED (8 Jul 2026 — Coach: "AI CEOs live independently, aiforceo is just the reporting dashboard")
+- Plan updated: docs/ceo-dashboard/CF-AI-GROUP-PLAN.md §7 (federation: independent AI CEO apps per venture on the AHMAD template -> HMAC feed -> one dashboard; standalone CF ai app reads via group-brief API; migration without demolition)
+- WRITE seam: /api/ceo/feed (other session, faffc12) + AHMAD's ceo-feed connector (AHMAD session) — contract verified matching (hex HMAC x-feed-signature; entity_id/source/date/pnl/ops_metrics; sen->RM; fail-open)
+- READ seam: GET /api/ceo/group-brief SHIPPED this session (783d2c2, deployed f3359623, verified 401 unauth): Bearer CEO_BRIEF_SECRET, auto-resolves HQ org, returns composeGroupBrief JSON, audit-logged; .env.example updated
+- Sidebar rename Dashboard->Business KPIs deployed by other session (d81b612)
+- NEXT (Phase B, needs Coach go): scaffold standalone CF ai app (fork AHMAD architecture, repo RaudhahPay/cf-ai, lift src/lib/cf-ai wholesale, poll read seam, own chat + WhatsApp via WaroBot later); generate CEO_BRIEF_SECRET when it exists. Before venture #2: per-entity feed keys (single CEO_FEED_SECRET is a one-key-writes-all risk, flagged in plan)
