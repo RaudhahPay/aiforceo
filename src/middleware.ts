@@ -14,6 +14,9 @@ const PUBLIC_PATHS = [
   "/api/health",
   // Cron routes — protected by CRON_SECRET, not session
   "/api/cron/morning-brief",
+  "/api/cron/ceo-evaluate",
+  // Venture data feed — machine-to-machine, protected by HMAC (CEO_FEED_SECRET)
+  "/api/ceo/feed",
   // Auth callback + payment webhook
   "/api/auth/callback",
   "/api/stripe/webhook",
