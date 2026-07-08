@@ -160,3 +160,56 @@ Phase 4 — CF ai Executes (LATER, needs separate Coach go + track record):
 
 Waiting on Gate 0: Coach says GO to apply 0016-0018 to prod and commit
 Stage 3. Then Aria runs Phase 1 without further questions.
+
+## 7. v2 TOPOLOGY — independent AI CEOs, one reporting dashboard
+   (Coach's call, 8 Jul 2026 evening: "the AI CEO will live independently;
+    aiforceo is just the reporting dashboard")
+
+The group is a federation, not a monolith:
+
+- aiforceo /ceo = the GROUP REPORTING DASHBOARD. Single source of truth for
+  numbers, traffic lights, red actions. It does not run agents; it receives.
+- Each venture gets its OWN AI CEO app, living independently on the AHMAD
+  architecture (cabinet + guardrails + audit + advisor mode). AHMAD is the
+  template and the first one. DRE Coffee is second.
+- AI employees (Hire Aria = marketing/sales, future AI CMO/CFO modules)
+  also live independently and report in.
+- CF ai (group AI CEO) graduates from aiforceo module to its OWN app: it
+  reads the group picture from the dashboard, runs the KIRA/JUAL/URUS
+  cabinet continuously, briefs Coach (web + WhatsApp later), and files
+  recommendations. The current /ceo/cf-ai page stays as the dashboard-side
+  brief view until the standalone app takes over the chat.
+
+The wiring (the two seams):
+
+1. WRITE seam — POST /api/ceo/feed (BUILT 8 Jul by the dashboard session):
+   HMAC-signed server-to-server ingest; external systems push daily
+   numbers (pnl/cashflow/etc), monthly rows maintained automatically,
+   everything audit-logged. AHMAD pushes first, EzPOS later.
+2. READ seam — GET /api/ceo/group-brief (this session): API-key-gated
+   JSON of composeGroupBrief output so the standalone CF ai (and nothing
+   else) can pull the whole-group picture without a browser session.
+
+Migration path (no demolition):
+- Phase A (now): AHMAD gets a Reporter connector that pushes its daily
+  numbers to the feed — code lands in ~/Code/ahmad-ai-ceo mock-first,
+  fires for real once AHMAD is provisioned + CEO_FEED_SECRET is shared.
+- Phase B: scaffold the standalone CF ai app (fork AHMAD architecture,
+  repo RaudhahPay/cf-ai; lift src/lib/cf-ai wholesale — guardrails,
+  analysts, brief are pure TS). It polls the READ seam, runs its loop on
+  cron, serves its own chat, and later WhatsApp via the WaroBot bridge.
+- Phase C: venture #2 (DRE Coffee) = new AHMAD-pattern instance from the
+  template + feed key. Proves "AI CEO in a box".
+- Phase D: retire the in-dashboard chat if the standalone CF ai fully
+  covers it; the dashboard keeps rendering CF ai's filed briefs.
+
+Honest flags:
+- N independent apps = N deployments to maintain. Mitigation: ONE
+  template codebase (AHMAD repo becomes ai-ceo template), ventures are
+  config + connectors, never forks that drift.
+- The feed secret is per-installation today (one CEO_FEED_SECRET);
+  before venture #2 we need per-entity keys so one leaked key cannot
+  write another venture's numbers.
+- Standalone CF ai must NOT get write access to dashboard financials —
+  it reads the brief, it files recommendations; humans and venture
+  systems write numbers. Separation stands.
