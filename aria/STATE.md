@@ -95,6 +95,10 @@ clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy sa
 - HONEST LIMIT: AHMAD is unprovisioned (no Supabase, mock POS). The pipe carries
   REAL data only after AHMAD gets its Supabase + a real POS/sales-sheet adapter.
 
+## Deploy 162541a6 (8 Jul, later)
+Shipped the CF-ai session's sidebar rename (old "Dashboard" -> "Business KPIs",
+commit cd4e0e3) live; tree was clean (feed work committed as faffc12/6353b95).
+
 ## Next task
 1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear
 2. Coach: log in at aiforceo.app -> sidebar "CEO Dashboard" -> enter real Ahmads numbers
