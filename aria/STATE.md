@@ -92,3 +92,9 @@ clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy sa
 - Gold "Talk to CF ai" button on /ceo header
 - Verified live: route 307s to login when unauthenticated; build/typecheck/lint/tests 69 all green
 - Commits on main NOT pushed: 6eea47c, 6ec0940, 889c8a8, 2bccb4d, 1611108 (+ this STATE update)
+
+## HQ DECISION EXECUTED (8 Jul 2026, Coach said "HQ")
+- Workspace e0942e54 (fadzil@brainybunch.com) RENAMED "Ahmads HotChicken" -> "White Unicorn Ventures HQ" — the one group org; all ventures go under it
+- Duplicate pilot entity b13c6abb (beforeb76's workspace cbda7fab) DELETED (had only 11 auto KPI defs, zero data; cascade cleaned them)
+- Single source of truth now: entity 90128463 "Ahmads HotChicken" (fnb) under HQ; F&B industry-default KPI defs apply automatically
+- WHY COACH SAW "WAROBOT — CEO Command Center": /ceo is workspace-scoped via ai4c_active_ws cookie (last-used workspace). He must switch workspace to White Unicorn Ventures HQ at /workspaces
