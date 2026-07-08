@@ -21,6 +21,23 @@ interface Env {
   CRON_SECRET: string;
 }
 
+function fireCronRoute(env: Env, route: string, label: string): Promise<void> {
+  return fetch(`${env.APP_URL}${route}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.CRON_SECRET}`,
+      "Content-Type": "application/json",
+    },
+  })
+    .then(async (res) => {
+      const body = await res.text();
+      console.log(`[${label}] ${res.status} — ${body}`);
+    })
+    .catch((err: unknown) => {
+      console.error(`[${label}] fetch failed:`, err);
+    });
+}
+
 const cronWorker = {
   async scheduled(
     _event: ScheduledEvent,
@@ -28,20 +45,10 @@ const cronWorker = {
     ctx: ExecutionContext,
   ): Promise<void> {
     ctx.waitUntil(
-      fetch(`${env.APP_URL}/api/cron/morning-brief`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.CRON_SECRET}`,
-          "Content-Type": "application/json",
-        },
-      })
-        .then(async (res) => {
-          const body = await res.text();
-          console.log(`[morning-brief-cron] ${res.status} — ${body}`);
-        })
-        .catch((err: unknown) => {
-          console.error("[morning-brief-cron] fetch failed:", err);
-        }),
+      Promise.all([
+        fireCronRoute(env, "/api/cron/morning-brief", "morning-brief-cron"),
+        fireCronRoute(env, "/api/cron/ceo-evaluate", "ceo-evaluate-cron"),
+      ]).then(() => undefined),
     );
   },
 };
