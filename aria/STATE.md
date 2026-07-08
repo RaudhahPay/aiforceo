@@ -68,6 +68,15 @@ clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy sa
 - Verified live: home 200, /ceo logged-out -> 307 /login?next=/ceo, login 200, cron endpoint 401 without secret
 - Commits deployed: 6eea47c..2bccb4d (still LOCAL only — not pushed to remote)
 
+## HQ FIX DEPLOYED (8 Jul, after Coach saw "WAROBOT" header)
+- Root cause: /ceo followed the SELECTED workspace (getCurrentWorkspace) — Coach was on
+  WAROBOT (0 ventures) while the pilot lives in White Unicorn Ventures HQ. Fixed with
+  resolveGroupHq (access.ts): among workspaces the user owns/has ceo roles in, pick the
+  one with most active ventures; fallback = selected workspace. Applied to /ceo,
+  /ceo/entities, createEntity, assignRole. Commit cf89900, deployed c26ef4bf, verified
+  with a 2-workspace test user (deleted). NOTE for CF-ai session: the CF ai brief page
+  still scopes by getCurrentWorkspace — apply resolveGroupHq there too.
+
 ## Next task
 1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear
 2. Coach: log in at aiforceo.app -> sidebar "CEO Dashboard" -> enter real Ahmads numbers
