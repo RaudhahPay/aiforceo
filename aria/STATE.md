@@ -62,8 +62,16 @@ Per cross-session coordination + Coach's GO: full /ceo UI + Sidebar link + 0020 
 migration landed as commit 3836762 (13 files, ~6.9k lines). Gates at commit: typecheck
 clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy safely.
 
+## DEPLOYED TO PRODUCTION (8 Jul 2026, Coach said deploy)
+- Main app: boardroom-ai worker, version 8a8720ea — https://aiforceo.app (CEO Dashboard live at /ceo)
+- Cron worker: boardroom-ai-cron, version 345323ae, schedule 0 * * * * (hourly KPI evaluate + 48h escalation sweep)
+- Verified live: home 200, /ceo logged-out -> 307 /login?next=/ceo, login 200, cron endpoint 401 without secret
+- Commits deployed: 6eea47c..2bccb4d (still LOCAL only — not pushed to remote)
+
 ## Next task
-1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear now
+1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear
+2. Coach: log in at aiforceo.app -> sidebar "CEO Dashboard" -> enter real Ahmads numbers
+3. Coach: pick group HQ account (beforeb76 vs fadzil@brainybunch) so the duplicate pilot entity can be deleted; say "push" to push main
 2. CF ai UI: Daily Brief panel on /ceo + Ask CF ai (grounded chat) — AFTER the UI session lands, to avoid collisions
 3. Deploy: main app (new routes/actions) + cron worker redeploy (pnpm wrangler deploy --config wrangler-cron.jsonc) — do NOT deploy while the UI session has uncommitted files in the tree
 4. Coach enters real Ahmads numbers (or finance CSV import) → first real Daily Brief
@@ -78,3 +86,9 @@ clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy sa
 ## Other repo threads (pre-existing)
 - CI auto-deploy blocked on CLOUDFLARE_API_TOKEN in GitHub Secrets
 - aiforceo Autonomous Marketing lives in ~/Code/boss-unified branch feat/marketing-phase0 (pushed, not merged)
+
+## CF ai IS NOW TALKABLE (8 Jul 2026, this session, commit 1611108, deployed 53a51e15)
+- /ceo/cf-ai LIVE on aiforceo.app: Today's Brief (AI narrative, ANTHROPIC_API_KEY confirmed set on worker), group pulse / cash / ventures stats, top priorities, cabinet findings per venture, Ask CF ai chat (grounded only in fresh brief data, advisor-mode persona, audit-logged, org-admin/owner/group_ceo gated)
+- Gold "Talk to CF ai" button on /ceo header
+- Verified live: route 307s to login when unauthenticated; build/typecheck/lint/tests 69 all green
+- Commits on main NOT pushed: 6eea47c, 6ec0940, 889c8a8, 2bccb4d, 1611108 (+ this STATE update)
