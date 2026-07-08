@@ -77,6 +77,24 @@ clean, 69/69 tests. Working tree is now clean for the CF-ai session to deploy sa
   with a 2-workspace test user (deleted). NOTE for CF-ai session: the CF ai brief page
   still scopes by getCurrentWorkspace — apply resolveGroupHq there too.
 
+## AHMAD FEED CONNECTION LIVE (8 Jul, Coach: "build a connection to Ahmads Ai CEO")
+- POST /api/ceo/feed (commit faffc12, deployed efdcdef5): HMAC-signed venture data
+  ingestion — daily P&L partial merge + auto MTD monthly rollup + ops metrics
+  (daily + monthly buckets) + audit log. CEO_FEED_SECRET set on the worker
+  (value also in boardroom .env.local + ahmad-ai-ceo .env.local).
+- MIDDLEWARE FIX: /api/ceo/feed AND /api/cron/ceo-evaluate added to PUBLIC_PATHS —
+  the session gate was silently 401-ing the hourly cron (CF-ai session: your cron
+  never ran against prod until this deploy).
+- AHMAD side (~/Code/ahmad-ai-ceo, UNCOMMITTED — needs Coach commit go):
+  connectors/ceo-feed.ts (HMAC push, fail-open), wired into runLoop post-ingest,
+  CLI pnpm agents:report-ceo [date], env contract in .env.example, .env.local
+  configured (URL + secret + entity 90128463 Ahmads HotChicken).
+- E2E PROVEN on prod: mock day pushed to 2026-01-15 (RM 54k + 4 food-cost metrics,
+  daily row + monthly rollup + per-outlet/All-outlets ops metrics all verified in
+  DB, notes tagged feed:ahmad-ai-ceo-mock) then deleted. Audit row retained.
+- HONEST LIMIT: AHMAD is unprovisioned (no Supabase, mock POS). The pipe carries
+  REAL data only after AHMAD gets its Supabase + a real POS/sales-sheet adapter.
+
 ## Next task
 1. (CF-ai session) Daily Brief panel + Ask CF ai on /ceo — tree is clear
 2. Coach: log in at aiforceo.app -> sidebar "CEO Dashboard" -> enter real Ahmads numbers

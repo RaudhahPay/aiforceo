@@ -72,7 +72,8 @@ Spec: docs/ceo-dashboard/TECHNICAL-ARCHITECTURE.md · Mockup: docs/ceo-dashboard
 ## PHASE 6 — DEPLOY & OPERATE
 - [ ] Staging deploy + pilot entity training data
 - [ ] Production release (tagged, manual approval)
-- [ ] Post-MVP: EzPOS sales feed, WhatsApp/Telegram alerts, AI briefing
+- [x] Venture data feed /api/ceo/feed (HMAC) + AHMAD AI CEO reporter — first live integration (was planned post-MVP as EzPOS-first)
+- [ ] Post-MVP: EzPOS onto the same feed, WhatsApp/Telegram alerts, AI briefing
 
 ## Conflict Notes (Stage 3 scan, 8 Jul 2026)
 1. workspace_kpi_months + src/lib/kpi already exist (simpler jsonb per-workspace KPI
