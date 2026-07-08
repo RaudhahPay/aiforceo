@@ -177,7 +177,7 @@ export function Sidebar({
               active={active === "dashboard" || active === "brief"}
               icon="📋"
             >
-              Dashboard
+              Business KPIs
             </Item>
           </Section>
 
