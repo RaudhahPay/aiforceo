@@ -255,21 +255,38 @@ export default async function CeoGroupOverviewPage() {
             </span>
           </div>
         </div>
-        <Link
-          href="/ceo/entities"
-          style={{
-            border: `1px solid ${line}`,
-            borderRadius: 10,
-            padding: "9px 15px",
-            fontSize: 12,
-            fontWeight: 600,
-            color: dim,
-            textDecoration: "none",
-            letterSpacing: "0.06em",
-          }}
-        >
-          Manage ventures & roles
-        </Link>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link
+            href="/ceo/cf-ai"
+            style={{
+              background: "var(--gold)",
+              color: "#101318",
+              borderRadius: 10,
+              padding: "9px 15px",
+              fontSize: 12,
+              fontWeight: 700,
+              textDecoration: "none",
+              letterSpacing: "0.06em",
+            }}
+          >
+            Talk to CF ai
+          </Link>
+          <Link
+            href="/ceo/entities"
+            style={{
+              border: `1px solid ${line}`,
+              borderRadius: 10,
+              padding: "9px 15px",
+              fontSize: 12,
+              fontWeight: 600,
+              color: dim,
+              textDecoration: "none",
+              letterSpacing: "0.06em",
+            }}
+          >
+            Manage ventures & roles
+          </Link>
+        </div>
       </header>
 
       {ventures.length === 0 ? (
