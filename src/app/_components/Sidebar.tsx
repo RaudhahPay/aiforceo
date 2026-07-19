@@ -30,6 +30,7 @@ type ActivePage =
   | "office"
   | "investor-pack"
   | "ceo-dashboard"
+  | "llm-spend"
   | AgentRole;
 
 const ROLES: AgentRole[] = ["aria", "cmo", "coo", "cfo", "ceo", "cto"];
@@ -150,6 +151,9 @@ export function Sidebar({
             </Item>
             <Item href="/ceo" active={active === "ceo-dashboard"} icon="🚦">
               CEO Dashboard
+            </Item>
+            <Item href="/ceo/llm-spend" active={active === "llm-spend"} icon="🧮">
+              AI Spend
             </Item>
             {allWorkspaces.length > 1 && (
               <Item href="/portfolio" active={active === "portfolio"} icon="📊">
