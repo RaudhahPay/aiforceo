@@ -279,6 +279,21 @@ export default async function CeoGroupOverviewPage() {
             Talk to CF ai
           </Link>
           <Link
+            href="/ceo/llm-spend"
+            style={{
+              border: `1px solid ${line}`,
+              borderRadius: 10,
+              padding: "9px 15px",
+              fontSize: 12,
+              fontWeight: 600,
+              color: dim,
+              textDecoration: "none",
+              letterSpacing: "0.06em",
+            }}
+          >
+            AI spend
+          </Link>
+          <Link
             href="/ceo/entities"
             style={{
               border: `1px solid ${line}`,
